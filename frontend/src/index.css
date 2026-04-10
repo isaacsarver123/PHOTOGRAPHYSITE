@@ -181,7 +181,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Chat widget */
 .chat-widget {
     position: fixed;
-    bottom: 24px;
+    bottom: 80px;
     right: 24px;
     z-index: 1000;
 }
