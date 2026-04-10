@@ -10,6 +10,8 @@ import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import AuthCallback from "./pages/AuthCallback";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ChatWidget from "./components/ChatWidget";
@@ -25,10 +27,11 @@ function AppContent() {
   }
   
   const isDashboard = location.pathname.startsWith('/dashboard');
+  const isAdmin = location.pathname.startsWith('/admin');
   
   return (
     <>
-      {!isDashboard && <Header />}
+      {!isDashboard && !isAdmin && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/services" element={<Services />} />
@@ -39,9 +42,11 @@ function AppContent() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
       </Routes>
-      {!isDashboard && <Footer />}
-      <ChatWidget />
+      {!isDashboard && !isAdmin && <Footer />}
+      {!isAdmin && <ChatWidget />}
       <Toaster position="bottom-right" theme="dark" />
     </>
   );

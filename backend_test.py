@@ -1,6 +1,7 @@
 import requests
 import sys
 import json
+import os
 from datetime import datetime
 
 class DronePhotographyAPITester:
@@ -9,6 +10,11 @@ class DronePhotographyAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.failed_tests = []
+        self.admin_token = None
+        self.admin_credentials = {
+            "email": "isaacsarver100@gmail.com",
+            "password": "Isabella0116!"
+        }
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
@@ -21,10 +27,13 @@ class DronePhotographyAPITester:
         print(f"   URL: {url}")
         
         try:
+            response = None
             if method == 'GET':
                 response = requests.get(url, headers=headers, timeout=10)
             elif method == 'POST':
                 response = requests.post(url, json=data, headers=headers, timeout=10)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=10)
 
             success = response.status_code == expected_status
             if success:
@@ -178,6 +187,237 @@ class DronePhotographyAPITester:
                 # Test get single booking
                 self.run_test("Get Single Booking", "GET", f"api/bookings/{booking_id}", 200)
 
+    def test_admin_auth(self):
+        """Test admin authentication"""
+        print("\n" + "="*50)
+        print("TESTING ADMIN AUTHENTICATION")
+        print("="*50)
+        
+        # Test admin login
+        success, login_response = self.run_test(
+            "Admin Login", 
+            "POST", 
+            "api/admin/login", 
+            200, 
+            self.admin_credentials
+        )
+        
+        if success and login_response:
+            self.admin_token = login_response.get('token')
+            print(f"   Admin token received: {self.admin_token[:20]}...")
+            
+            # Test get admin info
+            admin_headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {self.admin_token}'
+            }
+            
+            self.run_test("Get Admin Info", "GET", "api/admin/me", 200, headers=admin_headers)
+        else:
+            print("❌ Admin login failed - cannot test admin endpoints")
+
+    def test_admin_dashboard_stats(self):
+        """Test admin dashboard stats"""
+        if not self.admin_token:
+            print("⚠️  Skipping admin stats test - no admin token")
+            return
+            
+        print("\n" + "="*50)
+        print("TESTING ADMIN DASHBOARD STATS")
+        print("="*50)
+        
+        admin_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, stats_data = self.run_test("Get Admin Stats", "GET", "api/admin/stats", 200, headers=admin_headers)
+        
+        if success and stats_data:
+            expected_keys = ['total_bookings', 'pending_bookings', 'confirmed_bookings', 
+                           'completed_bookings', 'total_clients', 'total_contacts', 
+                           'new_contacts', 'total_revenue']
+            
+            for key in expected_keys:
+                if key in stats_data:
+                    print(f"   ✅ {key}: {stats_data[key]}")
+                else:
+                    print(f"   ❌ Missing stat: {key}")
+
+    def test_admin_bookings(self):
+        """Test admin booking management"""
+        if not self.admin_token:
+            print("⚠️  Skipping admin bookings test - no admin token")
+            return
+            
+        print("\n" + "="*50)
+        print("TESTING ADMIN BOOKING MANAGEMENT")
+        print("="*50)
+        
+        admin_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        # Test get all bookings
+        success, bookings_data = self.run_test("Get All Bookings", "GET", "api/admin/bookings", 200, headers=admin_headers)
+        
+        if success and bookings_data:
+            print(f"   Found {len(bookings_data)} bookings")
+            
+            # Test filtering by status
+            self.run_test("Filter Bookings - Pending", "GET", "api/admin/bookings?status=pending", 200, headers=admin_headers)
+            self.run_test("Filter Bookings - Confirmed", "GET", "api/admin/bookings?status=confirmed", 200, headers=admin_headers)
+            
+            # Test get single booking if any exist
+            if len(bookings_data) > 0:
+                booking_id = bookings_data[0].get('id')
+                if booking_id:
+                    self.run_test("Get Single Booking", "GET", f"api/admin/bookings/{booking_id}", 200, headers=admin_headers)
+                    
+                    # Test status update
+                    status_update = {"status": "confirmed"}
+                    self.run_test("Update Booking Status", "PUT", f"api/admin/bookings/{booking_id}/status", 200, 
+                                status_update, headers=admin_headers)
+
+    def test_admin_clients(self):
+        """Test admin client management"""
+        if not self.admin_token:
+            print("⚠️  Skipping admin clients test - no admin token")
+            return
+            
+        print("\n" + "="*50)
+        print("TESTING ADMIN CLIENT MANAGEMENT")
+        print("="*50)
+        
+        admin_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, clients_data = self.run_test("Get All Clients", "GET", "api/admin/clients", 200, headers=admin_headers)
+        
+        if success and clients_data:
+            print(f"   Found {len(clients_data)} clients")
+
+    def test_admin_contacts(self):
+        """Test admin contact management"""
+        if not self.admin_token:
+            print("⚠️  Skipping admin contacts test - no admin token")
+            return
+            
+        print("\n" + "="*50)
+        print("TESTING ADMIN CONTACT MANAGEMENT")
+        print("="*50)
+        
+        admin_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        # Test get all contacts
+        success, contacts_data = self.run_test("Get All Contacts", "GET", "api/admin/contacts", 200, headers=admin_headers)
+        
+        if success and contacts_data:
+            print(f"   Found {len(contacts_data)} contacts")
+            
+            # Test filtering by status
+            self.run_test("Filter Contacts - New", "GET", "api/admin/contacts?status=new", 200, headers=admin_headers)
+            
+            # Test status update if any contacts exist
+            if len(contacts_data) > 0:
+                contact_id = contacts_data[0].get('id')
+                if contact_id:
+                    self.run_test("Update Contact Status", "PUT", f"api/admin/contacts/{contact_id}/status?status=contacted", 200, 
+                                {}, headers=admin_headers)
+
+    def test_photo_upload_endpoint(self):
+        """Test photo upload functionality"""
+        if not self.admin_token:
+            print("⚠️  Skipping photo upload test - no admin token")
+            return
+            
+        print("\n" + "="*50)
+        print("TESTING PHOTO UPLOAD ENDPOINT")
+        print("="*50)
+        
+        # First create a test booking to upload photos to
+        booking_data = {
+            "name": "Photo Test Customer",
+            "email": "phototest@example.com",
+            "phone": "555-0123",
+            "property_address": "789 Photo Test St, Austin, TX",
+            "property_type": "residential",
+            "package_id": "starter",
+            "scheduled_date": "2025-02-20",
+            "scheduled_time": "2:00 PM",
+            "notes": "Test booking for photo upload"
+        }
+        
+        success, booking_response = self.run_test("Create Test Booking for Photos", "POST", "api/bookings", 200, booking_data)
+        
+        if success and booking_response:
+            booking_id = booking_response.get('id')
+            print(f"   Created test booking: {booking_id}")
+            
+            # Note: We can't actually upload a file in this test without creating a real file
+            # But we can test that the endpoint exists and requires auth
+            admin_headers = {
+                'Authorization': f'Bearer {self.admin_token}'
+            }
+            
+            # Test that the endpoint exists (will fail without file, but should not be 404)
+            url = f"{self.base_url}/api/admin/bookings/{booking_id}/photos"
+            try:
+                response = requests.post(url, headers=admin_headers, timeout=10)
+                # Expect 422 (validation error) since we're not sending a file
+                if response.status_code in [422, 400]:
+                    print("✅ Photo upload endpoint exists and requires file")
+                    self.tests_passed += 1
+                else:
+                    print(f"❌ Unexpected response: {response.status_code}")
+                self.tests_run += 1
+            except Exception as e:
+                print(f"❌ Error testing photo upload: {e}")
+                self.tests_run += 1
+
+    def test_email_notification_logging(self):
+        """Test email notification logging (mocked)"""
+        print("\n" + "="*50)
+        print("TESTING EMAIL NOTIFICATION LOGGING")
+        print("="*50)
+        
+        # Create a booking and check if confirmation email is logged
+        booking_data = {
+            "name": "Email Test Customer",
+            "email": "emailtest@example.com",
+            "phone": "555-0123",
+            "property_address": "321 Email Test Rd, Austin, TX",
+            "property_type": "residential",
+            "package_id": "professional",
+            "scheduled_date": "2025-02-25",
+            "scheduled_time": "11:00 AM",
+            "notes": "Test booking for email notification"
+        }
+        
+        success, booking_response = self.run_test("Create Booking for Email Test", "POST", "api/bookings", 200, booking_data)
+        
+        if success:
+            print("   ✅ Booking created - email notification should be logged to console")
+            print("   Note: Email notifications are MOCKED and logged to backend console")
+        
+        # Test contact form email notification
+        contact_data = {
+            "name": "Email Test Contact",
+            "email": "contacttest@example.com",
+            "phone": "555-0123",
+            "property_address": "654 Contact Test Blvd, Austin, TX",
+            "service_type": "commercial",
+            "message": "Test contact for email notification"
+        }
+        
+        success, contact_response = self.run_test("Submit Contact for Email Test", "POST", "api/contact", 200, contact_data)
+        
     def test_seed_portfolio(self):
         """Test portfolio seeding"""
         print("\n" + "="*50)
@@ -222,6 +462,15 @@ def main():
     tester.test_chat_endpoint()
     tester.test_booking_endpoints()
     tester.test_seed_portfolio()
+    
+    # Test admin features
+    tester.test_admin_auth()
+    tester.test_admin_dashboard_stats()
+    tester.test_admin_bookings()
+    tester.test_admin_clients()
+    tester.test_admin_contacts()
+    tester.test_photo_upload_endpoint()
+    tester.test_email_notification_logging()
     
     # Print summary
     success = tester.print_summary()
