@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion';
 import { 
   House, CalendarDots, Users, EnvelopeSimple, SignOut, ChartBar, 
-  CaretRight, Check, X, Upload, Trash, Eye, Clock, CurrencyDollar
+  CaretRight, Check, X, Upload, Trash, Eye, Clock, CurrencyDollar, Gear, CheckCircle
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -73,7 +73,7 @@ function AdminOverview() {
             <span className="text-xs text-green-400 bg-green-400/10 px-2 py-1">Revenue</span>
           </div>
           <p className="text-3xl font-black">${stats?.total_revenue?.toLocaleString() || 0}</p>
-          <p className="text-sm text-white/60">Total Revenue</p>
+          <p className="text-sm text-white/60">Total Revenue (CAD)</p>
         </div>
         
         <div className="border border-white/10 p-6 bg-[#141414]">
@@ -143,9 +143,12 @@ function AdminOverview() {
 function StatusBadge({ status }) {
   const colors = {
     pending: 'bg-yellow-500/20 text-yellow-400',
+    approved: 'bg-orange-500/20 text-orange-400',
+    awaiting_payment: 'bg-orange-500/20 text-orange-400',
     confirmed: 'bg-blue-500/20 text-blue-400',
     completed: 'bg-green-500/20 text-green-400',
     cancelled: 'bg-red-500/20 text-red-400',
+    paid: 'bg-green-500/20 text-green-400',
     new: 'bg-purple-500/20 text-purple-400',
     contacted: 'bg-blue-500/20 text-blue-400',
     closed: 'bg-gray-500/20 text-gray-400'
@@ -201,13 +204,13 @@ function AdminBookings() {
     <div data-testid="admin-bookings">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-black tracking-tight">Bookings</h1>
-        <div className="flex gap-2">
-          {['all', 'pending', 'confirmed', 'completed'].map((status) => (
+        <div className="flex gap-2 flex-wrap">
+          {['all', 'pending', 'approved', 'confirmed', 'completed'].map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
               className={`px-4 py-2 text-sm capitalize ${
-                filter === status ? 'bg-white text-black' : 'border border-white/20 hover:border-white/40'
+                filter === status ? 'bg-[#d4af37] text-black' : 'border border-white/20 hover:border-white/40'
               }`}
             >
               {status}
@@ -259,6 +262,10 @@ function AdminBookings() {
               booking={selectedBooking} 
               onStatusUpdate={updateStatus}
               onPhotoUpload={() => fetchBookings()}
+              onApprove={() => {
+                fetchBookings();
+                setSelectedBooking(null);
+              }}
             />
           ) : (
             <div className="text-center py-12">
@@ -273,9 +280,10 @@ function AdminBookings() {
 }
 
 // Booking Details Component
-function BookingDetails({ booking, onStatusUpdate, onPhotoUpload }) {
+function BookingDetails({ booking, onStatusUpdate, onPhotoUpload, onApprove }) {
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState([]);
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
@@ -287,6 +295,21 @@ function BookingDetails({ booking, onStatusUpdate, onPhotoUpload }) {
       setPhotos(response.data.photos || []);
     } catch (error) {
       console.error('Error fetching photos:', error);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!confirm('Approve this booking and send payment link to client?')) return;
+    
+    setApproving(true);
+    try {
+      await axios.post(`${API}/admin/bookings/${booking.id}/approve`, {}, { headers: getAuthHeaders() });
+      toast.success('Booking approved! Payment link sent to client.');
+      onApprove();
+    } catch (error) {
+      toast.error('Failed to approve booking');
+    } finally {
+      setApproving(false);
     }
   };
 
@@ -343,6 +366,10 @@ function BookingDetails({ booking, onStatusUpdate, onPhotoUpload }) {
           <span>{booking.phone}</span>
         </div>
         <div className="flex justify-between">
+          <span className="text-white/60">Area</span>
+          <span className="capitalize">{booking.service_area || 'Calgary'}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-white/60">Date</span>
           <span>{booking.scheduled_date}</span>
         </div>
@@ -353,6 +380,10 @@ function BookingDetails({ booking, onStatusUpdate, onPhotoUpload }) {
         <div className="flex justify-between">
           <span className="text-white/60">Package</span>
           <span className="capitalize">{booking.package_id}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-white/60">Amount</span>
+          <span className="font-bold">${booking.total_amount} CAD</span>
         </div>
         <div className="flex justify-between">
           <span className="text-white/60">Payment</span>
@@ -372,11 +403,28 @@ function BookingDetails({ booking, onStatusUpdate, onPhotoUpload }) {
         </div>
       )}
 
+      {/* Approve Button for Pending Bookings */}
+      {booking.status === 'pending' && (
+        <div className="border-t border-white/10 pt-4 mb-6">
+          <button
+            onClick={handleApprove}
+            disabled={approving}
+            className="w-full bg-[#d4af37] text-black py-3 text-sm font-medium uppercase hover:bg-[#c4a030] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <CheckCircle size={18} />
+            {approving ? 'Approving...' : 'Approve & Send Payment Link'}
+          </button>
+          <p className="text-xs text-white/40 mt-2 text-center">
+            Client will receive email with payment link
+          </p>
+        </div>
+      )}
+
       {/* Status Actions */}
       <div className="border-t border-white/10 pt-4 mb-6">
         <p className="text-xs text-white/40 mb-3">Update Status</p>
         <div className="flex flex-wrap gap-2">
-          {['pending', 'confirmed', 'completed', 'cancelled'].map((status) => (
+          {['pending', 'approved', 'confirmed', 'completed', 'cancelled'].map((status) => (
             <button
               key={status}
               onClick={() => onStatusUpdate(booking.id, status)}

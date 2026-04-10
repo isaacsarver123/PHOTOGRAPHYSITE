@@ -11,25 +11,22 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-white flex items-center justify-center">
-                <span className="text-black font-black text-lg">SV</span>
-              </div>
-              <span className="font-bold text-lg tracking-tight">SKYVIEW</span>
+              <img src="/logo.png" alt="SkyLine Media" className="h-12" />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6">
-              Professional drone aerial photography for real estate, powered by DJI technology.
+              Professional drone aerial photography for real estate in Calgary & Edmonton, Alberta.
             </p>
             <div className="flex gap-4">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" data-testid="social-instagram" className="text-white/40 hover:text-white transition-colors">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" data-testid="social-instagram" className="text-white/40 hover:text-[#d4af37] transition-colors">
                 <InstagramLogo size={24} />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" data-testid="social-facebook" className="text-white/40 hover:text-white transition-colors">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" data-testid="social-facebook" className="text-white/40 hover:text-[#d4af37] transition-colors">
                 <FacebookLogo size={24} />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" data-testid="social-youtube" className="text-white/40 hover:text-white transition-colors">
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" data-testid="social-youtube" className="text-white/40 hover:text-[#d4af37] transition-colors">
                 <YoutubeLogo size={24} />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" data-testid="social-linkedin" className="text-white/40 hover:text-white transition-colors">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" data-testid="social-linkedin" className="text-white/40 hover:text-[#d4af37] transition-colors">
                 <LinkedinLogo size={24} />
               </a>
             </div>
@@ -37,7 +34,7 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="font-bold text-sm tracking-wider uppercase mb-6">Services</h4>
+            <h4 className="font-bold text-sm tracking-wider uppercase mb-6 text-[#d4af37]">Services</h4>
             <ul className="space-y-3">
               <li><Link to="/services" className="text-white/60 text-sm hover:text-white transition-colors">Residential</Link></li>
               <li><Link to="/services" className="text-white/60 text-sm hover:text-white transition-colors">Commercial</Link></li>
@@ -48,7 +45,7 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="font-bold text-sm tracking-wider uppercase mb-6">Company</h4>
+            <h4 className="font-bold text-sm tracking-wider uppercase mb-6 text-[#d4af37]">Company</h4>
             <ul className="space-y-3">
               <li><Link to="/about" className="text-white/60 text-sm hover:text-white transition-colors">About Us</Link></li>
               <li><Link to="/portfolio" className="text-white/60 text-sm hover:text-white transition-colors">Portfolio</Link></li>
@@ -59,13 +56,13 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-bold text-sm tracking-wider uppercase mb-6">Contact</h4>
+            <h4 className="font-bold text-sm tracking-wider uppercase mb-6 text-[#d4af37]">Contact</h4>
             <ul className="space-y-3 text-white/60 text-sm">
-              <li>Austin, Texas</li>
-              <li>info@skyviewdrones.com</li>
-              <li>(512) 555-0123</li>
+              <li>Calgary & Edmonton, Alberta</li>
+              <li>info@skylinemedia.ca</li>
+              <li>(403) 555-0123</li>
               <li className="pt-2">
-                <span className="text-xs uppercase tracking-wider text-white/40">FAA Part 107 Certified</span>
+                <span className="text-xs uppercase tracking-wider text-white/40">Transport Canada Compliant</span>
               </li>
             </ul>
           </div>
@@ -73,7 +70,7 @@ export default function Footer() {
 
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/40 text-sm">
-            © {currentYear} SkyView Drone Photography. All rights reserved.
+            © {currentYear} SkyLine Media. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link to="/privacy" className="text-white/40 text-sm hover:text-white transition-colors">Privacy</Link>

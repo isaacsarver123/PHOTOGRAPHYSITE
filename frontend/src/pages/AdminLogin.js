@@ -49,11 +49,9 @@ export default function AdminLogin() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-white flex items-center justify-center mx-auto mb-4">
-            <Lock size={32} className="text-black" />
-          </div>
+          <img src="/logo.png" alt="SkyLine Media" className="h-16 mx-auto mb-4" />
           <h1 className="text-2xl font-black tracking-tight">Admin Login</h1>
-          <p className="text-white/60 mt-2">SkyView Dashboard Access</p>
+          <p className="text-white/60 mt-2">SkyLine Media Dashboard</p>
         </div>
 
         <form onSubmit={handleSubmit} className="border border-white/10 p-8 bg-[#141414]">
@@ -90,7 +88,7 @@ export default function AdminLogin() {
               type="submit"
               disabled={loading}
               data-testid="admin-login-btn"
-              className="w-full bg-white text-black px-8 py-4 text-sm font-medium tracking-wide uppercase hover:bg-white/90 transition-colors disabled:opacity-50"
+              className="w-full bg-[#d4af37] text-black px-8 py-4 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>

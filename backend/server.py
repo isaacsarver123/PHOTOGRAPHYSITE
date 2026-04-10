@@ -27,17 +27,19 @@ db = client[os.environ['DB_NAME']]
 
 # API Keys & Config
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'default-secret-change-me')
 JWT_ALGORITHM = "HS256"
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@skyviewdrones.com')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@skylinemedia.ca')
+PHOTO_STORAGE_PATH = os.environ.get('PHOTO_STORAGE_PATH', str(ROOT_DIR / 'uploads'))
+PHOTO_RETENTION_DAYS = int(os.environ.get('PHOTO_RETENTION_DAYS', '30'))
 
 # Create uploads directory
-UPLOAD_DIR = ROOT_DIR / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = Path(PHOTO_STORAGE_PATH)
+UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 # Create the main app
 app = FastAPI()
@@ -105,32 +107,100 @@ async def send_email(to_email: str, subject: str, html_content: str):
         logger.error(f"Failed to send email: {e}")
         return None
 
-async def send_booking_confirmation_email(booking: dict):
-    """Send booking confirmation email"""
+async def send_booking_request_email(booking: dict):
+    """Send booking request confirmation email"""
     html = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
         <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px;">
-            <h1 style="color: #0a0a0a; margin-bottom: 20px;">Booking Confirmed!</h1>
+            <img src="https://customer-assets.emergentagent.com/job_drone-home-showcase/artifacts/t1ak4xlw_Skyline%20Media%20logo%20with%20golden%20peaks%20%281%29.png" alt="SkyLine Media" style="height: 60px; margin-bottom: 20px;">
+            <h1 style="color: #0a0a0a; margin-bottom: 20px;">Booking Request Received!</h1>
             <p>Hi {booking['name']},</p>
-            <p>Thank you for booking with SkyView Drone Photography. Here are your booking details:</p>
+            <p>Thank you for your booking request with SkyLine Media. We've received your request and will review it shortly.</p>
             
             <div style="background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 4px;">
-                <p><strong>Date:</strong> {booking['scheduled_date']}</p>
+                <p><strong>Requested Date:</strong> {booking['scheduled_date']}</p>
                 <p><strong>Time:</strong> {booking['scheduled_time']}</p>
                 <p><strong>Package:</strong> {booking['package_id'].title()}</p>
                 <p><strong>Property:</strong> {booking['property_address']}</p>
-                <p><strong>Total:</strong> ${booking['total_amount']}</p>
+                <p><strong>Location:</strong> {booking.get('service_area', 'Calgary/Edmonton')}</p>
             </div>
             
-            <p>Our team will contact you within 24 hours to discuss your shoot requirements.</p>
+            <p><strong>What's Next?</strong></p>
+            <p>Our team will review your request and confirm availability. Once approved, you'll receive an email with:</p>
+            <ul>
+                <li>Confirmed date and time</li>
+                <li>Final pricing details</li>
+                <li>Secure payment link</li>
+            </ul>
             
-            <p style="margin-top: 30px;">Best regards,<br>SkyView Drone Photography</p>
+            <p style="margin-top: 30px;">Best regards,<br>SkyLine Media<br>Calgary & Edmonton, Alberta</p>
         </div>
     </body>
     </html>
     """
-    await send_email(booking['email'], "Booking Confirmed - SkyView Drone Photography", html)
+    await send_email(booking['email'], "Booking Request Received - SkyLine Media", html)
+
+async def send_booking_approved_email(booking: dict, payment_url: str):
+    """Send booking approved email with payment link"""
+    html = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px;">
+            <img src="https://customer-assets.emergentagent.com/job_drone-home-showcase/artifacts/t1ak4xlw_Skyline%20Media%20logo%20with%20golden%20peaks%20%281%29.png" alt="SkyLine Media" style="height: 60px; margin-bottom: 20px;">
+            <h1 style="color: #0a0a0a; margin-bottom: 20px;">Booking Approved!</h1>
+            <p>Hi {booking['name']},</p>
+            <p>Great news! Your booking request has been approved.</p>
+            
+            <div style="background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                <p><strong>Confirmed Date:</strong> {booking['scheduled_date']}</p>
+                <p><strong>Time:</strong> {booking['scheduled_time']}</p>
+                <p><strong>Package:</strong> {booking['package_id'].title()}</p>
+                <p><strong>Property:</strong> {booking['property_address']}</p>
+                <p><strong>Total:</strong> ${booking['total_amount']:.2f} CAD</p>
+            </div>
+            
+            <p><strong>Complete Your Payment:</strong></p>
+            <p>Please click the button below to complete your payment and confirm your booking:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{payment_url}" style="background: #d4af37; color: black; padding: 15px 30px; text-decoration: none; font-weight: bold; display: inline-block;">
+                    Pay ${booking['total_amount']:.2f} CAD
+                </a>
+            </div>
+            
+            <p style="color: #666; font-size: 12px;">This payment link will expire in 24 hours.</p>
+            
+            <p style="margin-top: 30px;">Best regards,<br>SkyLine Media<br>Calgary & Edmonton, Alberta</p>
+        </div>
+    </body>
+    </html>
+    """
+    await send_email(booking['email'], "Booking Approved - Complete Your Payment", html)
+
+async def send_photos_ready_email(booking: dict):
+    """Send photos ready email with 30-day warning"""
+    html = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px;">
+            <img src="https://customer-assets.emergentagent.com/job_drone-home-showcase/artifacts/t1ak4xlw_Skyline%20Media%20logo%20with%20golden%20peaks%20%281%29.png" alt="SkyLine Media" style="height: 60px; margin-bottom: 20px;">
+            <h1 style="color: #0a0a0a; margin-bottom: 20px;">Your Photos Are Ready!</h1>
+            <p>Hi {booking['name']},</p>
+            <p>Great news! Your drone photography session is complete and your photos are ready for download.</p>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #856404;"><strong>⚠️ Important:</strong> Your photos will be automatically deleted 30 days after your first download. Please make sure to download and save all your photos before then.</p>
+            </div>
+            
+            <p>Log in to your dashboard to view and download your images.</p>
+            
+            <p style="margin-top: 30px;">Best regards,<br>SkyLine Media<br>Calgary & Edmonton, Alberta</p>
+        </div>
+    </body>
+    </html>
+    """
+    await send_email(booking['email'], "Your Photos Are Ready - SkyLine Media", html)
 
 # ==================== MODELS ====================
 
@@ -182,6 +252,9 @@ class ClientPhoto(BaseModel):
     thumbnail_url: str
     download_url: str
     file_size: int = 0
+    first_downloaded_at: Optional[str] = None
+    delete_after: Optional[str] = None
+    download_count: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Booking(BaseModel):
@@ -193,14 +266,18 @@ class Booking(BaseModel):
     phone: str
     property_address: str
     property_type: str
+    service_area: str = "calgary"  # calgary or edmonton
     package_id: str
     scheduled_date: str
     scheduled_time: str
     notes: Optional[str] = None
-    status: str = "pending"
-    payment_status: str = "pending"
+    status: str = "pending"  # pending, approved, confirmed, completed, cancelled
+    payment_status: str = "pending"  # pending, awaiting_payment, paid, refunded
     payment_session_id: Optional[str] = None
+    payment_url: Optional[str] = None
     total_amount: float = 0.0
+    admin_notes: Optional[str] = None
+    approved_at: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ContactRequest(BaseModel):
@@ -211,6 +288,7 @@ class ContactRequest(BaseModel):
     phone: Optional[str] = None
     property_address: Optional[str] = None
     service_type: str
+    service_area: str = "calgary"
     message: str
     status: str = "new"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -230,11 +308,18 @@ class PaymentTransaction(BaseModel):
     booking_id: Optional[str] = None
     user_email: Optional[str] = None
     amount: float
-    currency: str = "usd"
+    currency: str = "cad"
     status: str = "initiated"
     payment_status: str = "pending"
     metadata: Optional[Dict[str, str]] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Settings(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "app_settings"
+    photo_storage_path: str = "/app/backend/uploads"
+    photo_retention_days: int = 30
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # ==================== REQUEST/RESPONSE MODELS ====================
 
@@ -248,6 +333,7 @@ class BookingCreate(BaseModel):
     phone: str
     property_address: str
     property_type: str
+    service_area: str = "calgary"
     package_id: str
     scheduled_date: str
     scheduled_time: str
@@ -259,26 +345,34 @@ class ContactCreate(BaseModel):
     phone: Optional[str] = None
     property_address: Optional[str] = None
     service_type: str
+    service_area: str = "calgary"
     message: str
 
 class ChatRequest(BaseModel):
     session_id: str
     message: str
 
-class CheckoutRequest(BaseModel):
-    booking_id: str
-    origin_url: str
+class BookingApprovalRequest(BaseModel):
+    scheduled_date: Optional[str] = None
+    scheduled_time: Optional[str] = None
+    admin_notes: Optional[str] = None
 
 class BookingStatusUpdate(BaseModel):
     status: str
+    admin_notes: Optional[str] = None
 
-# ==================== PRICING PACKAGES ====================
+class SettingsUpdate(BaseModel):
+    photo_storage_path: Optional[str] = None
+    photo_retention_days: Optional[int] = None
+
+# ==================== PRICING PACKAGES (CAD) ====================
 
 PACKAGES = {
     "starter": {
         "id": "starter",
         "name": "Starter Package",
-        "price": 299.00,
+        "price": 399.00,
+        "currency": "CAD",
         "description": "Perfect for small residential properties",
         "features": [
             "Up to 15 aerial photos",
@@ -292,7 +386,8 @@ PACKAGES = {
     "professional": {
         "id": "professional",
         "name": "Professional Package",
-        "price": 599.00,
+        "price": 799.00,
+        "currency": "CAD",
         "description": "Ideal for larger properties and real estate agents",
         "features": [
             "Up to 30 aerial photos",
@@ -309,7 +404,8 @@ PACKAGES = {
     "premium": {
         "id": "premium",
         "name": "Premium Package",
-        "price": 999.00,
+        "price": 1299.00,
+        "currency": "CAD",
         "description": "Complete coverage for luxury and commercial properties",
         "features": [
             "Unlimited aerial photos",
@@ -402,6 +498,28 @@ async def require_admin(request: Request) -> dict:
     """Require authenticated admin"""
     return await get_current_admin(request)
 
+# ==================== PHOTO CLEANUP TASK ====================
+
+async def cleanup_expired_photos():
+    """Delete photos that are past their retention period"""
+    now = datetime.now(timezone.utc)
+    expired_photos = await db.client_photos.find({
+        "delete_after": {"$ne": None, "$lt": now.isoformat()}
+    }, {"_id": 0}).to_list(1000)
+    
+    for photo in expired_photos:
+        try:
+            file_path = Path(PHOTO_STORAGE_PATH) / photo["booking_id"] / photo["filename"]
+            if file_path.exists():
+                file_path.unlink()
+                logger.info(f"Deleted expired photo: {file_path}")
+            
+            await db.client_photos.delete_one({"id": photo["id"]})
+        except Exception as e:
+            logger.error(f"Error deleting photo {photo['id']}: {e}")
+    
+    return len(expired_photos)
+
 # ==================== ADMIN AUTH ENDPOINTS ====================
 
 @api_router.post("/admin/login")
@@ -448,6 +566,52 @@ async def admin_logout(response: Response):
     response.delete_cookie(key="admin_token", path="/")
     return {"message": "Logged out"}
 
+# ==================== ADMIN SETTINGS ENDPOINTS ====================
+
+@api_router.get("/admin/settings")
+async def get_settings(admin: dict = Depends(require_admin)):
+    """Get app settings"""
+    settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
+    if not settings:
+        settings = {
+            "id": "app_settings",
+            "photo_storage_path": PHOTO_STORAGE_PATH,
+            "photo_retention_days": PHOTO_RETENTION_DAYS
+        }
+    return settings
+
+@api_router.put("/admin/settings")
+async def update_settings(settings_update: SettingsUpdate, admin: dict = Depends(require_admin)):
+    """Update app settings"""
+    global PHOTO_STORAGE_PATH, PHOTO_RETENTION_DAYS, UPLOAD_DIR
+    
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if settings_update.photo_storage_path:
+        new_path = Path(settings_update.photo_storage_path)
+        new_path.mkdir(exist_ok=True, parents=True)
+        PHOTO_STORAGE_PATH = str(new_path)
+        UPLOAD_DIR = new_path
+        update_data["photo_storage_path"] = PHOTO_STORAGE_PATH
+    
+    if settings_update.photo_retention_days is not None:
+        PHOTO_RETENTION_DAYS = settings_update.photo_retention_days
+        update_data["photo_retention_days"] = PHOTO_RETENTION_DAYS
+    
+    await db.settings.update_one(
+        {"id": "app_settings"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Settings updated", "settings": update_data}
+
+@api_router.post("/admin/cleanup-photos")
+async def trigger_photo_cleanup(admin: dict = Depends(require_admin)):
+    """Manually trigger photo cleanup"""
+    deleted_count = await cleanup_expired_photos()
+    return {"message": f"Cleaned up {deleted_count} expired photos"}
+
 # ==================== ADMIN DASHBOARD ENDPOINTS ====================
 
 @api_router.get("/admin/stats")
@@ -455,25 +619,27 @@ async def get_admin_stats(admin: dict = Depends(require_admin)):
     """Get admin dashboard stats"""
     total_bookings = await db.bookings.count_documents({})
     pending_bookings = await db.bookings.count_documents({"status": "pending"})
+    approved_bookings = await db.bookings.count_documents({"status": "approved"})
     confirmed_bookings = await db.bookings.count_documents({"status": "confirmed"})
     completed_bookings = await db.bookings.count_documents({"status": "completed"})
     total_clients = await db.users.count_documents({})
     total_contacts = await db.contacts.count_documents({})
     new_contacts = await db.contacts.count_documents({"status": "new"})
     
-    # Revenue calculation
     paid_bookings = await db.bookings.find({"payment_status": "paid"}, {"_id": 0, "total_amount": 1}).to_list(1000)
     total_revenue = sum(b.get("total_amount", 0) for b in paid_bookings)
     
     return {
         "total_bookings": total_bookings,
         "pending_bookings": pending_bookings,
+        "approved_bookings": approved_bookings,
         "confirmed_bookings": confirmed_bookings,
         "completed_bookings": completed_bookings,
         "total_clients": total_clients,
         "total_contacts": total_contacts,
         "new_contacts": new_contacts,
-        "total_revenue": total_revenue
+        "total_revenue": total_revenue,
+        "currency": "CAD"
     }
 
 @api_router.get("/admin/bookings")
@@ -497,11 +663,92 @@ async def get_admin_booking(booking_id: str, admin: dict = Depends(require_admin
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    # Get photos for this booking
     photos = await db.client_photos.find({"booking_id": booking_id}, {"_id": 0}).to_list(100)
     booking["photos"] = photos
     
     return booking
+
+@api_router.post("/admin/bookings/{booking_id}/approve")
+async def approve_booking(
+    booking_id: str,
+    approval: BookingApprovalRequest,
+    request: Request,
+    admin: dict = Depends(require_admin)
+):
+    """Approve booking and send payment link"""
+    from emergentintegrations.payments.stripe.checkout import (
+        StripeCheckout, CheckoutSessionRequest
+    )
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Booking is not pending approval")
+    
+    # Update booking with approved details
+    update_data = {
+        "status": "approved",
+        "payment_status": "awaiting_payment",
+        "approved_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if approval.scheduled_date:
+        update_data["scheduled_date"] = approval.scheduled_date
+    if approval.scheduled_time:
+        update_data["scheduled_time"] = approval.scheduled_time
+    if approval.admin_notes:
+        update_data["admin_notes"] = approval.admin_notes
+    
+    # Create Stripe checkout session
+    origin_url = str(request.base_url).rstrip('/').replace('/api', '').replace('http://', 'https://')
+    if 'localhost' in origin_url or '0.0.0.0' in origin_url:
+        origin_url = "https://drone-home-showcase.preview.emergentagent.com"
+    
+    success_url = f"{origin_url}/booking/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin_url}/booking/payment/{booking_id}"
+    
+    webhook_url = f"{str(request.base_url)}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    checkout_request = CheckoutSessionRequest(
+        amount=float(booking["total_amount"]),
+        currency="cad",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "booking_id": booking_id,
+            "email": booking["email"]
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    update_data["payment_session_id"] = session.session_id
+    update_data["payment_url"] = session.url
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Create payment transaction record
+    payment_doc = PaymentTransaction(
+        session_id=session.session_id,
+        booking_id=booking_id,
+        user_email=booking["email"],
+        amount=float(booking["total_amount"]),
+        currency="cad",
+        metadata={"booking_id": booking_id}
+    )
+    
+    doc = payment_doc.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.payment_transactions.insert_one(doc)
+    
+    # Send approval email with payment link
+    updated_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    await send_booking_approved_email(updated_booking, session.url)
+    
+    return {"message": "Booking approved", "payment_url": session.url}
 
 @api_router.put("/admin/bookings/{booking_id}/status")
 async def update_booking_status(
@@ -510,30 +757,22 @@ async def update_booking_status(
     admin: dict = Depends(require_admin)
 ):
     """Update booking status"""
+    update_data = {"status": status_update.status}
+    if status_update.admin_notes:
+        update_data["admin_notes"] = status_update.admin_notes
+    
     result = await db.bookings.update_one(
         {"id": booking_id},
-        {"$set": {"status": status_update.status}}
+        {"$set": update_data}
     )
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    # If status changed to completed, send notification email
     if status_update.status == "completed":
         booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
         if booking:
-            html = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h1>Your Photos Are Ready!</h1>
-                <p>Hi {booking['name']},</p>
-                <p>Great news! Your drone photography shoot is complete and your photos are ready for download.</p>
-                <p>Log in to your dashboard to view and download your images.</p>
-                <p>Best regards,<br>SkyView Drone Photography</p>
-            </body>
-            </html>
-            """
-            await send_email(booking['email'], "Your Photos Are Ready - SkyView", html)
+            await send_photos_ready_email(booking)
     
     return {"message": "Status updated"}
 
@@ -542,7 +781,6 @@ async def get_admin_clients(admin: dict = Depends(require_admin), limit: int = 5
     """Get all clients"""
     clients = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(limit)
     
-    # Add booking count for each client
     for client in clients:
         booking_count = await db.bookings.count_documents({"user_id": client.get("user_id")})
         client["booking_count"] = booking_count
@@ -594,23 +832,19 @@ async def upload_photo(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    # Generate unique filename
     ext = Path(file.filename).suffix or ".jpg"
     photo_id = str(uuid.uuid4())
     filename = f"{photo_id}{ext}"
     
-    # Create booking folder
-    booking_dir = UPLOAD_DIR / booking_id
-    booking_dir.mkdir(exist_ok=True)
+    booking_dir = Path(PHOTO_STORAGE_PATH) / booking_id
+    booking_dir.mkdir(exist_ok=True, parents=True)
     
-    # Save file
     file_path = booking_dir / filename
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
     file_size = file_path.stat().st_size
     
-    # Create photo record
     photo = ClientPhoto(
         id=photo_id,
         user_id=booking.get("user_id", ""),
@@ -636,12 +870,10 @@ async def delete_photo(photo_id: str, admin: dict = Depends(require_admin)):
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
     
-    # Delete file
-    file_path = UPLOAD_DIR / photo["booking_id"] / photo["filename"]
+    file_path = Path(PHOTO_STORAGE_PATH) / photo["booking_id"] / photo["filename"]
     if file_path.exists():
         file_path.unlink()
     
-    # Delete record
     await db.client_photos.delete_one({"id": photo_id})
     
     return {"message": "Photo deleted"}
@@ -649,18 +881,40 @@ async def delete_photo(photo_id: str, admin: dict = Depends(require_admin)):
 @api_router.get("/photos/{booking_id}/{filename}")
 async def get_photo(booking_id: str, filename: str):
     """Serve photo file"""
-    file_path = UPLOAD_DIR / booking_id / filename
+    file_path = Path(PHOTO_STORAGE_PATH) / booking_id / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Photo not found")
     
     return FileResponse(file_path)
 
 @api_router.get("/photos/{booking_id}/{filename}/download")
-async def download_photo(booking_id: str, filename: str):
-    """Download photo file"""
-    file_path = UPLOAD_DIR / booking_id / filename
+async def download_photo(booking_id: str, filename: str, request: Request):
+    """Download photo file and track download for 30-day deletion"""
+    file_path = Path(PHOTO_STORAGE_PATH) / booking_id / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Photo not found")
+    
+    # Update photo with first download timestamp
+    photo = await db.client_photos.find_one(
+        {"booking_id": booking_id, "filename": filename},
+        {"_id": 0}
+    )
+    
+    if photo and not photo.get("first_downloaded_at"):
+        delete_after = datetime.now(timezone.utc) + timedelta(days=PHOTO_RETENTION_DAYS)
+        await db.client_photos.update_one(
+            {"id": photo["id"]},
+            {"$set": {
+                "first_downloaded_at": datetime.now(timezone.utc).isoformat(),
+                "delete_after": delete_after.isoformat(),
+                "download_count": 1
+            }}
+        )
+    elif photo:
+        await db.client_photos.update_one(
+            {"id": photo["id"]},
+            {"$inc": {"download_count": 1}}
+        )
     
     return FileResponse(
         file_path,
@@ -790,7 +1044,7 @@ async def get_package(package_id: str):
 
 @api_router.post("/bookings")
 async def create_booking(booking: BookingCreate, request: Request):
-    """Create a new booking"""
+    """Create a new booking REQUEST (not confirmed yet)"""
     user = await get_current_user(request)
     
     if booking.package_id not in PACKAGES:
@@ -805,18 +1059,30 @@ async def create_booking(booking: BookingCreate, request: Request):
         phone=booking.phone,
         property_address=booking.property_address,
         property_type=booking.property_type,
+        service_area=booking.service_area,
         package_id=booking.package_id,
         scheduled_date=booking.scheduled_date,
         scheduled_time=booking.scheduled_time,
         notes=booking.notes,
-        total_amount=package["price"]
+        total_amount=package["price"],
+        status="pending",
+        payment_status="pending"
     )
     
     doc = booking_doc.model_dump()
     doc["created_at"] = doc["created_at"].isoformat()
     await db.bookings.insert_one(doc)
     
-    return {"id": booking_doc.id, "total_amount": package["price"]}
+    # Send booking request confirmation email
+    await send_booking_request_email(doc)
+    
+    return {
+        "id": booking_doc.id,
+        "total_amount": package["price"],
+        "currency": "CAD",
+        "status": "pending",
+        "message": "Booking request submitted! We'll review and get back to you within 24 hours."
+    }
 
 @api_router.get("/bookings")
 async def get_user_bookings(request: Request):
@@ -836,58 +1102,30 @@ async def get_booking(booking_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Booking not found")
     return booking
 
-# ==================== PAYMENT ENDPOINTS ====================
-
-@api_router.post("/payments/checkout")
-async def create_checkout(checkout_req: CheckoutRequest, request: Request):
-    """Create Stripe checkout session"""
-    from emergentintegrations.payments.stripe.checkout import (
-        StripeCheckout, CheckoutSessionRequest
-    )
-    
-    booking = await db.bookings.find_one({"id": checkout_req.booking_id}, {"_id": 0})
+@api_router.get("/bookings/{booking_id}/payment")
+async def get_booking_payment_info(booking_id: str):
+    """Get booking payment info for payment page"""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    origin_url = checkout_req.origin_url
-    success_url = f"{origin_url}/booking/success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{origin_url}/booking"
+    if booking["status"] != "approved":
+        raise HTTPException(status_code=400, detail="Booking not approved for payment")
     
-    webhook_url = f"{str(request.base_url)}api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
-    checkout_request = CheckoutSessionRequest(
-        amount=float(booking["total_amount"]),
-        currency="usd",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata={
-            "booking_id": checkout_req.booking_id,
-            "email": booking["email"]
-        }
-    )
-    
-    session = await stripe_checkout.create_checkout_session(checkout_request)
-    
-    payment_doc = PaymentTransaction(
-        session_id=session.session_id,
-        booking_id=checkout_req.booking_id,
-        user_email=booking["email"],
-        amount=float(booking["total_amount"]),
-        currency="usd",
-        metadata={"booking_id": checkout_req.booking_id}
-    )
-    
-    doc = payment_doc.model_dump()
-    doc["created_at"] = doc["created_at"].isoformat()
-    await db.payment_transactions.insert_one(doc)
-    
-    await db.bookings.update_one(
-        {"id": checkout_req.booking_id},
-        {"$set": {"payment_session_id": session.session_id}}
-    )
-    
-    return {"url": session.url, "session_id": session.session_id}
+    return {
+        "id": booking["id"],
+        "name": booking["name"],
+        "email": booking["email"],
+        "package_id": booking["package_id"],
+        "scheduled_date": booking["scheduled_date"],
+        "scheduled_time": booking["scheduled_time"],
+        "property_address": booking["property_address"],
+        "total_amount": booking["total_amount"],
+        "payment_url": booking.get("payment_url"),
+        "currency": "CAD"
+    }
+
+# ==================== PAYMENT ENDPOINTS ====================
 
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str):
@@ -911,7 +1149,6 @@ async def get_payment_status(session_id: str):
             {"_id": 0}
         )
         if transaction and transaction.get("booking_id"):
-            # Update booking status
             await db.bookings.update_one(
                 {"id": transaction["booking_id"]},
                 {"$set": {
@@ -919,17 +1156,12 @@ async def get_payment_status(session_id: str):
                     "status": "confirmed"
                 }}
             )
-            
-            # Send confirmation email
-            booking = await db.bookings.find_one({"id": transaction["booking_id"]}, {"_id": 0})
-            if booking:
-                await send_booking_confirmation_email(booking)
     
     return {
         "status": status.status,
         "payment_status": status.payment_status,
         "amount_total": status.amount_total,
-        "currency": status.currency
+        "currency": "cad"
     }
 
 @api_router.post("/webhook/stripe")
@@ -963,10 +1195,6 @@ async def stripe_webhook(request: Request):
                         "status": "confirmed"
                     }}
                 )
-                
-                booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
-                if booking:
-                    await send_booking_confirmation_email(booking)
         
         return {"status": "ok"}
     except Exception as e:
@@ -984,6 +1212,7 @@ async def create_contact(contact: ContactCreate):
         phone=contact.phone,
         property_address=contact.property_address,
         service_type=contact.service_type,
+        service_area=contact.service_area,
         message=contact.message
     )
     
@@ -991,15 +1220,15 @@ async def create_contact(contact: ContactCreate):
     doc["created_at"] = doc["created_at"].isoformat()
     await db.contacts.insert_one(doc)
     
-    # Send notification email
     html = f"""
     <html>
     <body>
-        <h2>New Contact Request</h2>
+        <h2>New Contact Request - SkyLine Media</h2>
         <p><strong>Name:</strong> {contact.name}</p>
         <p><strong>Email:</strong> {contact.email}</p>
         <p><strong>Phone:</strong> {contact.phone or 'N/A'}</p>
         <p><strong>Service:</strong> {contact.service_type}</p>
+        <p><strong>Area:</strong> {contact.service_area.title()}</p>
         <p><strong>Message:</strong> {contact.message}</p>
     </body>
     </html>
@@ -1029,21 +1258,26 @@ async def chat(chat_req: ChatRequest):
     user_doc["created_at"] = user_doc["created_at"].isoformat()
     await db.chat_messages.insert_one(user_doc)
     
-    system_message = """You are a helpful assistant for SkyView Drone Photography, a professional drone aerial photography company specializing in DJI high-quality drones for real estate.
+    system_message = """You are a helpful assistant for SkyLine Media, a professional drone aerial photography company specializing in DJI high-quality drones for real estate in Alberta, Canada.
 
 Business Information:
-- We serve residential and commercial real estate clients
-- FAA Part 107 certified pilots
+- We serve Calgary and Edmonton, Alberta
+- FAA Part 107 certified pilots (Transport Canada compliant)
 - DJI equipment: Mavic 3 Pro, Inspire 3, Mini 4 Pro
-- Service areas: Major metropolitan areas and suburbs
 - Turnaround: 24-48 hours for standard, same-day available for Premium
 
-Pricing Packages:
-1. Starter ($299): 15 aerial photos, 1 video, 24-48hr delivery
-2. Professional ($599): 30 photos, 2 videos, virtual tour, 12-24hr delivery - MOST POPULAR
-3. Premium ($999): Unlimited photos, 4K video, twilight shots, 3D mapping, same-day available
+Pricing Packages (all prices in CAD):
+1. Starter ($399 CAD): 15 aerial photos, 1 video, 24-48hr delivery
+2. Professional ($799 CAD): 30 photos, 2 videos, virtual tour, 12-24hr delivery - MOST POPULAR
+3. Premium ($1,299 CAD): Unlimited photos, 4K video, twilight shots, 3D mapping, same-day available
 
-Be friendly, professional, and helpful. Answer questions about services, pricing, booking, and availability. If someone wants to book, direct them to the Booking page. For quotes, suggest the Contact page."""
+Booking Process:
+1. Submit a booking request with your preferred date
+2. We review and confirm availability
+3. Once approved, you'll receive a payment link
+4. Pay to confirm your booking
+
+Be friendly, professional, and helpful. Answer questions about services, pricing, booking, and availability. If someone wants to book, direct them to the Booking page."""
 
     chat = LlmChat(
         api_key=ANTHROPIC_API_KEY,
@@ -1078,12 +1312,25 @@ async def get_chat_history(session_id: str):
 
 @api_router.get("/client/photos")
 async def get_client_photos(request: Request):
-    """Get photos for authenticated client"""
+    """Get photos for authenticated client with deletion warning"""
     user = await require_auth(request)
     photos = await db.client_photos.find(
         {"user_id": user.user_id},
         {"_id": 0}
     ).sort("created_at", -1).to_list(100)
+    
+    # Add days remaining for each photo
+    now = datetime.now(timezone.utc)
+    for photo in photos:
+        if photo.get("delete_after"):
+            delete_at = datetime.fromisoformat(photo["delete_after"].replace("Z", "+00:00"))
+            days_remaining = (delete_at - now).days
+            photo["days_remaining"] = max(0, days_remaining)
+            photo["deletion_warning"] = days_remaining <= 7
+        else:
+            photo["days_remaining"] = None
+            photo["deletion_warning"] = False
+    
     return photos
 
 @api_router.get("/client/stats")
@@ -1112,22 +1359,22 @@ async def seed_portfolio():
     portfolio_items = [
         {
             "id": str(uuid.uuid4()),
-            "title": "Modern Lakefront Estate",
-            "description": "Stunning aerial views showcasing waterfront property with private dock",
+            "title": "Modern Calgary Estate",
+            "description": "Stunning aerial views showcasing luxury property in Calgary's prestigious neighborhoods",
             "category": "residential",
             "image_url": "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1200",
             "before_image_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
             "after_image_url": "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=800",
-            "location": "Lake Austin, TX",
+            "location": "Calgary, AB",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": str(uuid.uuid4()),
-            "title": "Downtown Commercial Complex",
+            "title": "Downtown Edmonton Commercial",
             "description": "Multi-story commercial building aerial photography for marketing",
             "category": "commercial",
             "image_url": "https://images.unsplash.com/photo-1669003153246-cb591207e66e?w=1200",
-            "location": "Austin, TX",
+            "location": "Edmonton, AB",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
@@ -1138,16 +1385,16 @@ async def seed_portfolio():
             "image_url": "https://images.unsplash.com/photo-1641441371947-47dd2f4a4276?w=1200",
             "before_image_url": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
             "after_image_url": "https://images.unsplash.com/photo-1641441371947-47dd2f4a4276?w=800",
-            "location": "Westlake Hills, TX",
+            "location": "Calgary, AB",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": str(uuid.uuid4()),
-            "title": "Agricultural Land Survey",
+            "title": "Alberta Ranch Survey",
             "description": "Comprehensive aerial mapping for 500-acre ranch property",
             "category": "land",
             "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200",
-            "location": "Hill Country, TX",
+            "location": "Rural Alberta",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
@@ -1156,7 +1403,7 @@ async def seed_portfolio():
             "description": "Construction progress documentation for residential development",
             "category": "construction",
             "image_url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200",
-            "location": "Round Rock, TX",
+            "location": "Edmonton, AB",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
@@ -1165,7 +1412,7 @@ async def seed_portfolio():
             "description": "Premium twilight aerial photography for luxury listing",
             "category": "residential",
             "image_url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200",
-            "location": "Barton Creek, TX",
+            "location": "Calgary, AB",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
     ]
@@ -1179,7 +1426,7 @@ async def seed_portfolio():
 
 @api_router.get("/")
 async def root():
-    return {"message": "SkyView Drone Photography API"}
+    return {"message": "SkyLine Media API", "version": "2.0", "currency": "CAD"}
 
 @api_router.get("/health")
 async def health():
@@ -1200,7 +1447,8 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Seed admin user on startup"""
+    """Seed admin user and settings on startup"""
+    # Admin user
     existing_admin = await db.admins.find_one({"email": ADMIN_EMAIL.lower()}, {"_id": 0})
     
     if existing_admin is None:
@@ -1215,13 +1463,22 @@ async def startup_event():
         await db.admins.insert_one(admin_doc)
         logger.info(f"Admin user created: {ADMIN_EMAIL}")
     else:
-        # Update password if changed
         if not verify_password(ADMIN_PASSWORD, existing_admin["password_hash"]):
             await db.admins.update_one(
                 {"email": ADMIN_EMAIL.lower()},
                 {"$set": {"password_hash": hash_password(ADMIN_PASSWORD)}}
             )
             logger.info("Admin password updated")
+    
+    # Settings
+    existing_settings = await db.settings.find_one({"id": "app_settings"})
+    if not existing_settings:
+        await db.settings.insert_one({
+            "id": "app_settings",
+            "photo_storage_path": PHOTO_STORAGE_PATH,
+            "photo_retention_days": PHOTO_RETENTION_DAYS,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
     
     # Create indexes
     await db.users.create_index("email", unique=True)

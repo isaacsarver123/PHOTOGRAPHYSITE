@@ -61,8 +61,8 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="max-w-3xl"
           >
-            <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-6">
-              Professional Drone Photography
+            <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-6">
+              Calgary & Edmonton, Alberta
             </p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-none mb-6">
               Elevate Your<br />
@@ -77,9 +77,9 @@ export default function Home() {
               <Link
                 to="/booking"
                 data-testid="hero-cta-button"
-                className="bg-white text-black px-8 py-4 text-sm font-medium tracking-wide uppercase hover:bg-white/90 transition-colors inline-flex items-center justify-center gap-2"
+                className="bg-[#d4af37] text-black px-8 py-4 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors inline-flex items-center justify-center gap-2"
               >
-                Book a Shoot
+                Request a Booking
                 <ArrowRight size={18} />
               </Link>
               <Link
@@ -100,13 +100,13 @@ export default function Home() {
           transition={{ repeat: Infinity, duration: 2 }}
         >
           <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
-            <div className="w-1 h-2 bg-white/60 rounded-full" />
+            <div className="w-1 h-2 bg-[#d4af37] rounded-full" />
           </div>
         </motion.div>
       </section>
 
       {/* Stats Bar */}
-      <section className="bg-white text-black py-12" data-testid="stats-section">
+      <section className="bg-[#d4af37] text-black py-12" data-testid="stats-section">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, idx) => (
@@ -135,7 +135,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="mb-16"
           >
-            <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">What We Offer</p>
+            <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">What We Offer</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Services</h2>
           </motion.div>
 
@@ -172,7 +172,7 @@ export default function Home() {
             <Link
               to="/services"
               data-testid="services-cta"
-              className="inline-flex items-center gap-2 text-sm tracking-wide hover:text-white/70 transition-colors"
+              className="inline-flex items-center gap-2 text-sm tracking-wide text-[#d4af37] hover:text-[#c4a030] transition-colors"
             >
               View All Services
               <ArrowRight size={16} />
@@ -196,10 +196,10 @@ export default function Home() {
                 alt="Drone pilot operating equipment"
                 className="w-full aspect-[4/5] object-cover"
               />
-              <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-white text-black p-6 md:p-8">
+              <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-[#d4af37] text-black p-6 md:p-8">
                 <Certificate size={32} weight="fill" className="mb-2" />
-                <p className="text-xs uppercase tracking-wider font-medium">FAA Part 107</p>
-                <p className="text-xs text-black/60">Certified</p>
+                <p className="text-xs uppercase tracking-wider font-medium">Transport Canada</p>
+                <p className="text-xs text-black/60">Compliant</p>
               </div>
             </motion.div>
 
@@ -208,28 +208,27 @@ export default function Home() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">About SkyView</p>
+              <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">About SkyLine Media</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
                 Professional Aerial<br />Photography Experts
               </h2>
               <p className="text-white/60 leading-relaxed mb-8">
-                With FAA Part 107 certification and years of experience, we deliver 
-                exceptional aerial photography that helps real estate professionals 
-                stand out in a competitive market. Our fleet of DJI drones captures 
-                every angle with precision and artistry.
+                Serving Calgary and Edmonton, we deliver exceptional aerial photography 
+                that helps real estate professionals stand out in a competitive market. 
+                Our fleet of DJI drones captures every angle with precision and artistry.
               </p>
 
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="text-center p-4 border border-white/10">
-                  <Drone size={28} className="mx-auto mb-2 text-white/80" />
+                  <Drone size={28} className="mx-auto mb-2 text-[#d4af37]" />
                   <p className="text-xs text-white/60">DJI Fleet</p>
                 </div>
                 <div className="text-center p-4 border border-white/10">
-                  <Certificate size={28} className="mx-auto mb-2 text-white/80" />
-                  <p className="text-xs text-white/60">FAA Certified</p>
+                  <Certificate size={28} className="mx-auto mb-2 text-[#d4af37]" />
+                  <p className="text-xs text-white/60">Certified</p>
                 </div>
                 <div className="text-center p-4 border border-white/10">
-                  <Timer size={28} className="mx-auto mb-2 text-white/80" />
+                  <Timer size={28} className="mx-auto mb-2 text-[#d4af37]" />
                   <p className="text-xs text-white/60">Fast Delivery</p>
                 </div>
               </div>
@@ -237,7 +236,7 @@ export default function Home() {
               <Link
                 to="/about"
                 data-testid="about-cta"
-                className="inline-flex items-center gap-2 text-sm tracking-wide hover:text-white/70 transition-colors"
+                className="inline-flex items-center gap-2 text-sm tracking-wide text-[#d4af37] hover:text-[#c4a030] transition-colors"
               >
                 Learn More About Us
                 <ArrowRight size={16} />
@@ -256,7 +255,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">Our Equipment</p>
+              <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">Our Equipment</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
                 Powered by DJI
               </h2>
@@ -273,7 +272,7 @@ export default function Home() {
                   { name: "DJI Mini 4 Pro", desc: "Compact, versatile, perfect for tight spaces" }
                 ].map((drone, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 border border-white/10">
-                    <Star size={20} weight="fill" className="text-white mt-0.5" />
+                    <Star size={20} weight="fill" className="text-[#d4af37] mt-0.5" />
                     <div>
                       <p className="font-medium">{drone.name}</p>
                       <p className="text-sm text-white/60">{drone.desc}</p>
@@ -299,7 +298,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 md:py-32 bg-white text-black" data-testid="cta-section">
+      <section className="py-24 md:py-32 bg-[#d4af37] text-black" data-testid="cta-section">
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -311,7 +310,7 @@ export default function Home() {
             </h2>
             <p className="text-black/60 max-w-xl mx-auto mb-10">
               Get stunning aerial photography that sells properties faster. 
-              Book your shoot today and receive your images within 24-48 hours.
+              Request a booking today and receive your images within 24-48 hours.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -319,7 +318,7 @@ export default function Home() {
                 data-testid="footer-cta-book"
                 className="bg-black text-white px-8 py-4 text-sm font-medium tracking-wide uppercase hover:bg-black/80 transition-colors inline-flex items-center justify-center gap-2"
               >
-                Book Now
+                Request Booking
                 <ArrowRight size={18} />
               </Link>
               <Link

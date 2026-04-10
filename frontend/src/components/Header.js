@@ -29,10 +29,7 @@ export default function Header() {
           data-testid="logo-link"
           className="flex items-center gap-3"
         >
-          <div className="w-10 h-10 bg-white flex items-center justify-center">
-            <span className="text-black font-black text-lg">SV</span>
-          </div>
-          <span className="font-bold text-lg tracking-tight hidden sm:block">SKYVIEW</span>
+          <img src="/logo.png" alt="SkyLine Media" className="h-12" />
         </Link>
 
         {/* Desktop Nav */}
@@ -73,9 +70,9 @@ export default function Header() {
           <Link
             to="/booking"
             data-testid="book-now-btn"
-            className="bg-white text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-white/90 transition-colors"
+            className="bg-[#d4af37] text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors"
           >
-            Book a Shoot
+            Request Booking
           </Link>
         </div>
 
@@ -129,9 +126,9 @@ export default function Header() {
                 <Link
                   to="/booking"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-white text-black px-6 py-3 text-sm font-medium tracking-wide uppercase text-center"
+                  className="bg-[#d4af37] text-black px-6 py-3 text-sm font-medium tracking-wide uppercase text-center"
                 >
-                  Book a Shoot
+                  Request Booking
                 </Link>
               </div>
             </div>
