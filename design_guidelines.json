@@ -1,0 +1,108 @@
+{
+  "theme": "DARK",
+  "archetype": "4 (Swiss & High-Contrast)",
+  "emotional_tone": "Authority, Clarity, Truth, Modern, Minimalist, Cinematic",
+  "colors": {
+    "background": "#0A0A0A",
+    "surface": "#141414",
+    "surface_glass": "bg-black/60 backdrop-blur-xl",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A1A1AA",
+    "border": "rgba(255, 255, 255, 0.1)",
+    "accent": "#FFFFFF",
+    "accent_hover": "#E5E5E5"
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Cabinet Grotesk, sans-serif",
+      "body": "Satoshi, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-5xl sm:text-6xl tracking-tighter font-black leading-none",
+      "h2": "text-3xl sm:text-4xl tracking-tight font-bold leading-tight",
+      "h3": "text-xl sm:text-2xl tracking-tight font-medium",
+      "body": "text-base leading-relaxed font-normal",
+      "overline": "text-xs tracking-[0.2em] uppercase font-bold"
+    },
+    "rules": [
+      "No generic 'Inter' for headings.",
+      "Radical weight contrast (Black vs Light).",
+      "Never center default text, define explicit alignment (mostly left-aligned)."
+    ]
+  },
+  "layout": {
+    "spacing": {
+      "section_y": "py-24 md:py-32",
+      "container_px": "px-6 md:px-12",
+      "gap": "gap-8 md:gap-12"
+    },
+    "grid": {
+      "marketing": "grid grid-cols-1 md:grid-cols-12 gap-8",
+      "dashboard": "grid grid-cols-1 md:grid-cols-4 gap-4"
+    },
+    "surface_strategies": {
+      "cards": "border-collapse style layout, 1px subtle border (border-white/10), rounded-none, flat background (#141414)",
+      "header": "Crystal Glassmorphism (bg-black/60 backdrop-blur-xl border-b border-white/10) with z-50 fixed positioning"
+    }
+  },
+  "components": {
+    "buttons": "rounded-none border border-white bg-white text-black hover:bg-transparent hover:text-white transition-all px-6 py-3 font-medium text-sm tracking-wide uppercase",
+    "inputs": "Shadcn based, flat background (#0A0A0A), border-white/20, text-white, focus:border-white focus:ring-1 focus:ring-white rounded-none",
+    "navigation": "Logo + links + Primary CTA. Links visible on desktop. Header uses Crystal Glassmorphism.",
+    "icons": "@phosphor-icons/react (Duotone weight for marketing, Regular for dashboard)"
+  },
+  "pages_and_features": {
+    "home": {
+      "hero": "h-screen, full-bleed image with bg-black/40 overlay. Massive left-aligned H1. 'Book a Shoot' CTA.",
+      "services_overview": "Tetris bento grid showcasing real estate, commercial, and mapping. Asymmetrical spans.",
+      "about_teaser": "Image of drone pilot + text about FAA Part 107 certification and high-end DJI equipment."
+    },
+    "services": {
+      "layout": "Grid borders (technical look) detailing DJI models, service areas, and delivery times."
+    },
+    "portfolio": {
+      "layout": "Masonry or tight grid of high-res images. Must include a 'Before / After' interactive slider component (custom HTML/React) for color grading showcase."
+    },
+    "pricing": {
+      "layout": "3 columns. 'Tracing Beam' border effect on the most popular/middle package. Clear breakdown of deliverables."
+    },
+    "booking": {
+      "layout": "Integrated calendar (Shadcn Calendar + form) -> leads to Stripe payment flow. Minimalist, form-focused, Swiss precision."
+    },
+    "client_dashboard": {
+      "layout": "Control Room Grid. Sidebar navigation. Google Auth login. Gallery of downloadable assets, invoice history."
+    },
+    "ai_chat": {
+      "layout": "Floating widget in bottom right. Minimalist chat window, using Claude for visitor queries (pricing, availability)."
+    }
+  },
+  "media": {
+    "hero_image": {
+      "url": "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob21lJTIwc3Vuc2V0fGVufDB8fHx8MTc3NTg1MjUyN3ww&ixlib=rb-4.1.0&q=85",
+      "description": "White and brown concrete luxury building near body of water during sunset"
+    },
+    "portfolio_1": {
+      "url": "https://images.unsplash.com/photo-1669003153246-cb591207e66e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHw0fHxkcm9uZSUyMGFlcmlhbCUyMHJlYWwlMjBlc3RhdGV8ZW58MHx8fHwxNzc1ODUyNTEzfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Aerial view of a city/suburb"
+    },
+    "portfolio_2": {
+      "url": "https://images.unsplash.com/photo-1641441371947-47dd2f4a4276?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHwzfHxkcm9uZSUyMGFlcmlhbCUyMHJlYWwlMjBlc3RhdGV8ZW58MHx8fHwxNzc1ODUyNTEzfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Aerial view of a large field with a lake"
+    },
+    "drone_equipment": {
+      "url": "https://images.unsplash.com/photo-1506947411487-a56738267384?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwxfHxkcm9uZSUyMHBpbG90fGVufDB8fHx8MTc3NTg1MjUyN3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Shallow focus photography of a DJI quadcopter drone"
+    },
+    "drone_pilot": {
+      "url": "https://images.unsplash.com/photo-1547044283-81919b74c110?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwzfHxkcm9uZSUyMHBpbG90fGVufDB8fHx8MTc3NTg1MjUyN3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Person controlling drone camera, looking focused"
+    }
+  },
+  "technical_rules": {
+    "data_testid": "All interactive and key informational elements MUST include a data-testid attribute in kebab-case, role-based format (e.g., data-testid='hero-cta-button').",
+    "animation": "Framer Motion for page transitions and staggering. Use Lenis for smooth scrolling.",
+    "components": "Use custom HTML/Tailwind for marketing layout. Use heavily customized Shadcn for dashboard and forms.",
+    "accessibility": "respect prefers-reduced-motion, min 4.5:1 contrast ratio, always explicitly set text color on hover/focus."
+  }
+}
