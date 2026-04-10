@@ -689,11 +689,9 @@ export default function AdminDashboard() {
       <aside className="w-64 bg-[#141414] border-r border-white/10 fixed h-full">
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white flex items-center justify-center">
-              <span className="text-black font-black text-lg">SV</span>
-            </div>
+            <img src="/logo.png" alt="SkyLine Media" className="h-10" />
             <div>
-              <span className="font-bold tracking-tight block">SKYVIEW</span>
+              <span className="font-bold tracking-tight block text-[#d4af37]">SkyLine Media</span>
               <span className="text-xs text-white/40">Admin Panel</span>
             </div>
           </div>
@@ -707,7 +705,7 @@ export default function AdminDashboard() {
               data-testid={`admin-nav-${item.label.toLowerCase()}`}
               className={`flex items-center gap-3 px-4 py-3 mb-1 transition-colors ${
                 isActive(item.path, item.exact) || (item.exact && location.pathname === item.path)
-                  ? 'bg-white text-black' 
+                  ? 'bg-[#d4af37] text-black' 
                   : 'text-white/60 hover:text-white hover:bg-white/5'
               }`}
             >
