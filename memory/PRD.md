@@ -1,109 +1,87 @@
 # SkyLine Media - PRD
 
 ## Original Problem Statement
-Build a website for a drone aerial photography business specializing in DJI high-quality drones for real estate photography in Calgary and Edmonton, Alberta.
+Build a website for a drone aerial photography business specializing in DJI high-quality drones for real estate photography in Central Alberta, Canada.
 
-## Key Updates (Latest)
-- Rebranded from SkyView to **SkyLine Media**
-- Changed currency from USD to **CAD (Canadian Dollars)**
-- Service areas: **Calgary & Edmonton, Alberta**
-- New booking flow: **Request -> Admin Approve -> Client Pays**
-- **30-day photo retention** after first download
-- Using **Stripe LIVE key** for real payments
-- Configurable photo storage path
-- SMTP email infrastructure added (configurable via Admin Dashboard)
-- Fleet updated to: **DJI Mavic 3 Pro, DJI Air 3, DJI Avata 2**
+## Key Details
+- Brand: **SkyLine Media**
+- Currency: **CAD (Canadian Dollars)**
+- Main Location: **Central Alberta (Red Deer & Area)**
+- Service Areas: Central Alberta (free), Edmonton (+$80), Calgary (+$80), Others by arrangement
+- Phone: **(825) 962-3425**
+- Email: info@skylinemedia.ca
+- Compliance: **Transport Canada** certified
 
-## User Personas
-1. **Real Estate Agents** - Need professional aerial photos for listings
-2. **Property Owners** - Want aerial views of their property
-3. **Commercial Developers** - Construction documentation and marketing
-4. **Admin (You)** - Manages bookings, uploads photos, handles clients
+## Pricing Packages (CAD)
+- **Quick Aerial**: $199 - 8-12 photos, 1 short video, 48hr delivery
+- **Aerial Plus**: $299 - 15-20 photos, cinematic video, optional FPV, 24-48hr (POPULAR)
+- **FPV Showcase**: $649 - 15 photos, full FPV fly-through, highlight video, social media cut, 24hr
 
-## Pricing (CAD)
-- **Starter**: $399 CAD - 15 photos, 1 video, 24-48hr delivery
-- **Professional**: $799 CAD - 30 photos, 2 videos, virtual tour (POPULAR)
-- **Premium**: $1,299 CAD - Unlimited photos, 4K video, twilight, 3D mapping
+## Drone Fleet
+- DJI Mavic 3 Pro (flagship tri-camera, 5.1K, 46min)
+- DJI Air 3 (dual-cam, 48MP, 4K/100fps)
+- DJI Avata 2 (FPV, 155° FOV, 4K/60fps)
+- BetaFPV Pavo 20 Pro (indoor FPV, 4K camera)
 
 ## Booking Flow
-1. Client submits booking REQUEST (selects package, date, time, area)
-2. Admin reviews request in dashboard
-3. Admin **Approves** booking -> System sends payment email to client
-4. Client clicks payment link -> Stripe checkout (CAD)
-5. Payment confirmed -> Booking status changes to "confirmed"
-6. Shoot completed -> Admin uploads photos
-7. Client notified -> Can download for 30 days
+1. Client submits booking REQUEST
+2. Admin reviews and approves
+3. Client receives payment link → Stripe checkout (CAD)
+4. Payment confirmed → Booking confirmed
+5. Shoot completed → Admin uploads photos
+6. Client downloads (30-day retention)
 
 ## Features Implemented
 
 ### Marketing Website
-- [x] Home page with SkyLine Media branding (gold theme)
+- [x] Home page with gold-themed branding, hero, stats (white text)
 - [x] Services page (Residential, Commercial, Land, Construction)
-- [x] Portfolio gallery with before/after slider
-- [x] Pricing page with CAD prices
-- [x] Contact page with quote form
-- [x] About page (Calgary & Edmonton focus)
+- [x] Portfolio gallery with Central Alberta locations
+- [x] Pricing page with 3 tiers + travel fees + FAQ + add-ons
+- [x] Contact page with correct phone/email/location
+- [x] About page (Central Alberta, Transport Canada)
 - [x] AI Chat Widget (Claude Sonnet 4.5)
-- [x] Custom uploaded images (Equipment, Transport Canada Compliance sections)
-- [x] Updated fleet: DJI Mavic 3 Pro, Air 3, Avata 2
-- [x] Stats section with white text on dark background
-- [x] New Skyline Media logo (golden peaks)
+- [x] Custom drone images (Air 3, Avata 2, equipment graphic)
+- [x] Updated fleet with Pavo 20 Pro
 
 ### Client Features
-- [x] Booking request submission (not instant payment)
-- [x] Service area selection (Calgary/Edmonton)
-- [x] Google OAuth login for dashboard
+- [x] Booking request with 4 service areas (Central AB, Edmonton, Calgary, Other)
+- [x] Google OAuth login
 - [x] View bookings and download photos
-- [x] 30-day download warning
+- [x] 30-day download retention warning
 
 ### Admin Features
-- [x] JWT email/password login
-- [x] Dashboard with stats (bookings, revenue in CAD, clients)
-- [x] **Approve** pending bookings (sends payment link)
-- [x] Update booking status
-- [x] Upload photos for client delivery
+- [x] JWT admin login
+- [x] Dashboard with stats
+- [x] Approve/reject bookings
+- [x] Upload photos for delivery
 - [x] View clients and contact requests
-- [x] Configurable photo storage path
-- [x] **SMTP Email Settings** in Admin Dashboard (host, port, user, password, sender)
-- [x] Test email button to verify SMTP config
-- [x] Settings page with photo storage + SMTP config
+- [x] **CMS: Editable site content** (phone, email, location, service areas, fleet)
+- [x] **CMS: Editable pricing packages** (name, price, features, notes)
+- [x] **SMTP Email Settings** (host, port, user, password, test email)
+- [x] **Photo storage settings** (path, retention days)
 
 ### Integrations
-- [x] Stripe LIVE payments (CAD currency)
-- [x] Claude Sonnet 4.5 AI chat
+- [x] Stripe LIVE payments (CAD)
+- [x] Claude Sonnet 4.5 AI chat (Emergent LLM Key)
 - [x] Emergent Google OAuth
-- [x] SMTP Email support (infrastructure ready, awaiting user credentials)
-- [x] Resend email fallback (if configured)
+- [x] SMTP Email infrastructure (awaiting user credentials)
+- [x] 30-day auto-deletion scheduler (runs every 6 hours)
 
 ## Admin Credentials
-- **Email**: isaacsarver100@gmail.com
-- **Password**: Isabella0116!
-- **URL**: /admin
-
-## Configuration
-- Photo storage: Configurable via PHOTO_STORAGE_PATH env or admin settings
-- Retention: 30 days (configurable via PHOTO_RETENTION_DAYS)
-- Stripe: LIVE key configured
-- SMTP: Configurable via admin dashboard settings page
+- Email: isaacsarver100@gmail.com
+- Password: Isabella0116!
+- URL: /admin
 
 ## Technical Stack
-- Frontend: React, Tailwind CSS, Framer Motion
-- Backend: FastAPI, MongoDB
+- Frontend: React, Tailwind CSS, Framer Motion, Shadcn UI
+- Backend: FastAPI, MongoDB (motor)
 - Auth: JWT (admin), Emergent OAuth (clients)
-- Payments: Stripe (CAD)
-- AI: Claude Sonnet 4.5
-- Email: SMTP (configurable) / Resend (fallback)
-
-## For Local Server Setup
-To run locally:
-1. Set PHOTO_STORAGE_PATH to your preferred drive location
-2. Configure MongoDB connection
-3. Update domain/URLs as needed
-4. Configure SMTP in Admin Dashboard -> Settings
+- Payments: Stripe (CAD, LIVE key)
+- AI: Claude Sonnet 4.5 (Emergent LLM Key)
+- Email: SMTP (configurable) / Resend (fallback) / Mock (default)
 
 ## Next Steps
-1. User to provide SMTP credentials (Gmail app password or other SMTP service)
-2. Update admin email/password in dashboard if desired
-3. Set up custom domain when ready
-4. Configure local storage path for production
-5. Verify 30-day auto-deletion logic
+1. User to provide SMTP credentials via Admin Dashboard > Settings
+2. Custom domain setup
+3. Configure local storage path for production
