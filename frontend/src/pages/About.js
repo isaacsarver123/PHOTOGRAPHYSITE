@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Certificate, Drone, Users, Target, ArrowRight, Star } from '@phosphor-icons/react';
 
 const pilotImage = "/about-pilot.png";
-const droneImage = "https://images.unsplash.com/photo-1506947411487-a56738267384?w=800&q=80";
+const droneImage = "/about-equipment.jpeg";
 const teamImage = "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&q=80";
 
 export default function About() {
