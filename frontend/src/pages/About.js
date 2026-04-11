@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Certificate, Drone, Users, Target, ArrowRight, Star } from '@phosphor-icons/react';
 
-const pilotImage = "https://images.unsplash.com/photo-1547044283-81919b74c110?w=800&q=80";
+const pilotImage = "/about-pilot.png";
 const droneImage = "https://images.unsplash.com/photo-1506947411487-a56738267384?w=800&q=80";
 const teamImage = "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&q=80";
 
