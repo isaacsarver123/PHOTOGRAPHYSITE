@@ -14,7 +14,7 @@ export default function Footer() {
               <img src="/logo.png" alt="SkyLine Media" className="h-12" />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6">
-              Professional drone aerial photography for real estate in Calgary & Edmonton, Alberta.
+              Professional drone aerial photography for real estate in Central Alberta, Red Deer & surrounding areas.
             </p>
             <div className="flex gap-4">
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" data-testid="social-instagram" className="text-white/40 hover:text-[#d4af37] transition-colors">
@@ -58,9 +58,9 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-sm tracking-wider uppercase mb-6 text-[#d4af37]">Contact</h4>
             <ul className="space-y-3 text-white/60 text-sm">
-              <li>Calgary & Edmonton, Alberta</li>
+              <li>Central Alberta (Red Deer & Area)</li>
               <li>info@skylinemedia.ca</li>
-              <li>(403) 555-0123</li>
+              <li>(825) 962-3425</li>
               <li className="pt-2">
                 <span className="text-xs uppercase tracking-wider text-white/40">Transport Canada Compliant</span>
               </li>

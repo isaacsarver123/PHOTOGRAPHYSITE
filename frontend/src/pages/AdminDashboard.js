@@ -3,7 +3,8 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion';
 import { 
   House, CalendarDots, Users, EnvelopeSimple, SignOut, ChartBar, 
-  CaretRight, Check, X, Upload, Trash, Eye, Clock, CurrencyDollar, Gear, CheckCircle
+  CaretRight, Check, X, Upload, Trash, Eye, Clock, CurrencyDollar, Gear, CheckCircle,
+  NotePencil, Package
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -649,6 +650,283 @@ function AdminContacts() {
 }
 
 // Main Admin Dashboard Component
+// Admin Site Content CMS
+function AdminContent() {
+  const [content, setContent] = useState({
+    phone: '',
+    email: '',
+    main_location: '',
+    service_areas: [],
+    travel_fee_note: '',
+    fleet: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { fetchContent(); }, []);
+
+  const fetchContent = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/site-content`, { headers: getAuthHeaders() });
+      setContent(prev => ({ ...prev, ...res.data }));
+    } catch (error) {
+      toast.error('Failed to load site content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = { ...content };
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+      await axios.put(`${API}/admin/site-content`, payload, { headers: getAuthHeaders() });
+      toast.success('Site content updated');
+    } catch (error) {
+      toast.error('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateArea = (idx, field, value) => {
+    const areas = [...content.service_areas];
+    areas[idx] = { ...areas[idx], [field]: field === 'fee' ? parseInt(value) || 0 : value };
+    setContent(c => ({ ...c, service_areas: areas }));
+  };
+
+  const addArea = () => setContent(c => ({ ...c, service_areas: [...c.service_areas, { name: '', fee: 0 }] }));
+  const removeArea = (idx) => setContent(c => ({ ...c, service_areas: c.service_areas.filter((_, i) => i !== idx) }));
+
+  const updateFleet = (idx, field, value) => {
+    const fleet = [...content.fleet];
+    fleet[idx] = { ...fleet[idx], [field]: value };
+    setContent(c => ({ ...c, fleet }));
+  };
+
+  const addFleet = () => setContent(c => ({ ...c, fleet: [...c.fleet, { name: '', description: '', image: '' }] }));
+  const removeFleet = (idx) => setContent(c => ({ ...c, fleet: c.fleet.filter((_, i) => i !== idx) }));
+
+  if (loading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-white/5" /></div>;
+
+  const inputCls = "w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none";
+
+  return (
+    <div data-testid="admin-content">
+      <h1 className="text-3xl font-black tracking-tight mb-8">Site Content</h1>
+
+      {/* Contact Info */}
+      <div className="border border-white/10 bg-[#141414] p-6 mb-6">
+        <h2 className="text-lg font-bold mb-4">Contact Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Phone Number</label>
+            <input data-testid="content-phone" value={content.phone} onChange={e => setContent(c => ({ ...c, phone: e.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Email</label>
+            <input data-testid="content-email" value={content.email} onChange={e => setContent(c => ({ ...c, email: e.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Main Location</label>
+            <input data-testid="content-location" value={content.main_location} onChange={e => setContent(c => ({ ...c, main_location: e.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Travel Fee Note</label>
+            <input value={content.travel_fee_note} onChange={e => setContent(c => ({ ...c, travel_fee_note: e.target.value }))} className={inputCls} />
+          </div>
+        </div>
+      </div>
+
+      {/* Service Areas */}
+      <div className="border border-white/10 bg-[#141414] p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Service Areas</h2>
+          <button onClick={addArea} className="text-sm text-[#d4af37] hover:text-[#c4a030]">+ Add Area</button>
+        </div>
+        <div className="space-y-3">
+          {content.service_areas.map((area, idx) => (
+            <div key={idx} className="flex gap-3 items-center">
+              <input value={area.name} onChange={e => updateArea(idx, 'name', e.target.value)} placeholder="Area name" className={`${inputCls} flex-1`} />
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-white/40">$</span>
+                <input type="number" value={area.fee} onChange={e => updateArea(idx, 'fee', e.target.value)} className={`${inputCls} w-24`} />
+                <span className="text-sm text-white/40">fee</span>
+              </div>
+              <button onClick={() => removeArea(idx)} className="text-red-400 hover:text-red-300 p-2"><X size={16} /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Fleet */}
+      <div className="border border-white/10 bg-[#141414] p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Drone Fleet</h2>
+          <button onClick={addFleet} className="text-sm text-[#d4af37] hover:text-[#c4a030]">+ Add Drone</button>
+        </div>
+        <div className="space-y-4">
+          {content.fleet.map((drone, idx) => (
+            <div key={idx} className="border border-white/10 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/40">Drone #{idx + 1}</span>
+                <button onClick={() => removeFleet(idx)} className="text-red-400 hover:text-red-300"><X size={16} /></button>
+              </div>
+              <input value={drone.name} onChange={e => updateFleet(idx, 'name', e.target.value)} placeholder="Drone name" className={inputCls} />
+              <input value={drone.description} onChange={e => updateFleet(idx, 'description', e.target.value)} placeholder="Description" className={inputCls} />
+              <input value={drone.image || ''} onChange={e => updateFleet(idx, 'image', e.target.value)} placeholder="Image URL (optional)" className={inputCls} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button data-testid="content-save" onClick={handleSave} disabled={saving}
+        className="bg-[#d4af37] text-black px-8 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors disabled:opacity-50">
+        {saving ? 'Saving...' : 'Save Site Content'}
+      </button>
+    </div>
+  );
+}
+
+// Admin Packages CMS
+function AdminPackages() {
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { fetchPackages(); }, []);
+
+  const fetchPackages = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/packages`, { headers: getAuthHeaders() });
+      setPackages(res.data);
+    } catch (error) {
+      toast.error('Failed to load packages');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await axios.put(`${API}/admin/packages`, { packages }, { headers: getAuthHeaders() });
+      toast.success('Packages updated');
+    } catch (error) {
+      toast.error('Failed to save packages');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updatePkg = (idx, field, value) => {
+    const pkgs = [...packages];
+    pkgs[idx] = { ...pkgs[idx], [field]: field === 'price' ? parseFloat(value) || 0 : value };
+    setPackages(pkgs);
+  };
+
+  const updateFeature = (pkgIdx, featIdx, value) => {
+    const pkgs = [...packages];
+    pkgs[pkgIdx] = { ...pkgs[pkgIdx], features: [...pkgs[pkgIdx].features] };
+    pkgs[pkgIdx].features[featIdx] = value;
+    setPackages(pkgs);
+  };
+
+  const addFeature = (pkgIdx) => {
+    const pkgs = [...packages];
+    pkgs[pkgIdx] = { ...pkgs[pkgIdx], features: [...pkgs[pkgIdx].features, ''] };
+    setPackages(pkgs);
+  };
+
+  const removeFeature = (pkgIdx, featIdx) => {
+    const pkgs = [...packages];
+    pkgs[pkgIdx] = { ...pkgs[pkgIdx], features: pkgs[pkgIdx].features.filter((_, i) => i !== featIdx) };
+    setPackages(pkgs);
+  };
+
+  const togglePopular = (idx) => {
+    const pkgs = packages.map((p, i) => ({ ...p, popular: i === idx ? !p.popular : false }));
+    setPackages(pkgs);
+  };
+
+  if (loading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-white/5" /></div>;
+
+  const inputCls = "w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none";
+
+  return (
+    <div data-testid="admin-packages">
+      <h1 className="text-3xl font-black tracking-tight mb-8">Pricing Packages</h1>
+
+      <div className="space-y-6">
+        {packages.map((pkg, idx) => (
+          <div key={idx} className={`border bg-[#141414] p-6 ${pkg.popular ? 'border-[#d4af37]' : 'border-white/10'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">{pkg.name || `Package ${idx + 1}`}</h2>
+              <button onClick={() => togglePopular(idx)} className={`text-xs px-3 py-1 border transition-colors ${pkg.popular ? 'bg-[#d4af37]/20 text-[#d4af37] border-[#d4af37]/30' : 'border-white/20 text-white/40 hover:text-white'}`}>
+                {pkg.popular ? 'Popular' : 'Set Popular'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm text-white/60 mb-2">Package ID</label>
+                <input value={pkg.id} onChange={e => updatePkg(idx, 'id', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm text-white/60 mb-2">Name</label>
+                <input value={pkg.name} onChange={e => updatePkg(idx, 'name', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm text-white/60 mb-2">Price (CAD)</label>
+                <input type="number" value={pkg.price} onChange={e => updatePkg(idx, 'price', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm text-white/60 mb-2">Description</label>
+                <input value={pkg.description} onChange={e => updatePkg(idx, 'description', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm text-white/60 mb-2">Recommended For</label>
+                <input value={pkg.recommended_for || ''} onChange={e => updatePkg(idx, 'recommended_for', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Notes (optional)</label>
+              <input value={pkg.notes || ''} onChange={e => updatePkg(idx, 'notes', e.target.value)} className={inputCls} />
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-white/60">Features</label>
+                <button onClick={() => addFeature(idx)} className="text-xs text-[#d4af37]">+ Add Feature</button>
+              </div>
+              <div className="space-y-2">
+                {pkg.features.map((feat, fidx) => (
+                  <div key={fidx} className="flex gap-2 items-center">
+                    <input value={feat} onChange={e => updateFeature(idx, fidx, e.target.value)} className={`${inputCls} flex-1`} />
+                    <button onClick={() => removeFeature(idx, fidx)} className="text-red-400 hover:text-red-300 p-2"><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button data-testid="packages-save" onClick={handleSave} disabled={saving}
+        className="mt-6 bg-[#d4af37] text-black px-8 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors disabled:opacity-50">
+        {saving ? 'Saving...' : 'Save All Packages'}
+      </button>
+    </div>
+  );
+}
+
 // Admin Settings
 function AdminSettings() {
   const [settings, setSettings] = useState({
@@ -855,6 +1133,8 @@ export default function AdminDashboard() {
     { path: '/admin/dashboard/bookings', icon: CalendarDots, label: 'Bookings' },
     { path: '/admin/dashboard/clients', icon: Users, label: 'Clients' },
     { path: '/admin/dashboard/contacts', icon: EnvelopeSimple, label: 'Contacts' },
+    { path: '/admin/dashboard/content', icon: NotePencil, label: 'Site Content' },
+    { path: '/admin/dashboard/packages', icon: Package, label: 'Packages' },
     { path: '/admin/dashboard/settings', icon: Gear, label: 'Settings' }
   ];
 
@@ -925,6 +1205,8 @@ export default function AdminDashboard() {
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="clients" element={<AdminClients />} />
           <Route path="contacts" element={<AdminContacts />} />
+          <Route path="content" element={<AdminContent />} />
+          <Route path="packages" element={<AdminPackages />} />
           <Route path="settings" element={<AdminSettings />} />
         </Routes>
       </main>

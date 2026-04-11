@@ -5,7 +5,8 @@ import { ArrowRight, Drone, Certificate, Timer, Star } from '@phosphor-icons/rea
 const heroImage = "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1920&q=80";
 const equipmentImage = "/equipment-image.png";
 const complianceImage = "/compliance-image.png";
-const fleetImage = "https://images.unsplash.com/photo-1768571845597-38f066307f1e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzZ8MHwxfHNlYXJjaHwzfHxESkklMjBkcm9uZSUyMGZseWluZyUyMGFlcmlhbCUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc3NTg4Mjc1Nnww&ixlib=rb-4.1.0&q=85";
+const air3Image = "/air3-image.png";
+const avata2Image = "/avata2-image.png";
 
 const services = [
   {
@@ -63,7 +64,7 @@ export default function Home() {
             className="max-w-3xl"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-6">
-              Calgary & Edmonton, Alberta
+              Central Alberta & Red Deer
             </p>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-none mb-6">
               Elevate Your<br />
@@ -214,9 +215,10 @@ export default function Home() {
                 Professional Aerial<br />Photography Experts
               </h2>
               <p className="text-white/60 leading-relaxed mb-8">
-                Serving Calgary and Edmonton, we deliver exceptional aerial photography 
+                Serving Central Alberta, Red Deer, and surrounding areas. We deliver exceptional aerial photography 
                 that helps real estate professionals stand out in a competitive market. 
                 Our fleet of DJI drones captures every angle with precision and artistry.
+                Edmonton and Calgary available for an additional $80 CAD travel fee.
               </p>
 
               <div className="grid grid-cols-3 gap-4 mb-8">
@@ -283,7 +285,8 @@ export default function Home() {
                 {[
                   { name: "DJI Mavic 3 Pro", desc: "Flagship tri-camera system with 4/3 CMOS Hasselblad, 5.1K video & 46-min flight time" },
                   { name: "DJI Air 3", desc: "Dual-camera powerhouse with 48MP photos, 4K/100fps video & 46-min flight time" },
-                  { name: "DJI Avata 2", desc: "Immersive FPV drone with 4K/60fps, ultra-wide 155° FOV & motion controller" }
+                  { name: "DJI Avata 2", desc: "Immersive FPV drone with 4K/60fps, ultra-wide 155° FOV & motion controller" },
+                  { name: "BetaFPV Pavo 20 Pro", desc: "Indoor FPV drone with 4K camera, designed for smooth interior fly-throughs" }
                 ].map((drone, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 border border-white/10 hover:border-[#d4af37]/30 transition-colors">
                     <Star size={20} weight="fill" className="text-[#d4af37] mt-0.5 flex-shrink-0" />
@@ -295,11 +298,16 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="mt-8">
+              <div className="mt-6 grid grid-cols-2 gap-3">
                 <img
-                  src={fleetImage}
-                  alt="DJI Drone in flight"
-                  className="w-full aspect-video object-cover border border-white/10"
+                  src={air3Image}
+                  alt="DJI Air 3"
+                  className="w-full aspect-square object-cover border border-white/10"
+                />
+                <img
+                  src={avata2Image}
+                  alt="DJI Avata 2"
+                  className="w-full aspect-square object-cover border border-white/10"
                 />
               </div>
             </motion.div>

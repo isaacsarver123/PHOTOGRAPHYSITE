@@ -51,7 +51,7 @@ export default function ChatWidget() {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again or contact us directly at (512) 555-0123."
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again or contact us directly at (825) 962-3425."
       }]);
     } finally {
       setLoading(false);
@@ -72,7 +72,7 @@ export default function ChatWidget() {
             {/* Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#141414]">
               <div>
-                <h3 className="font-bold text-sm">SkyView Assistant</h3>
+                <h3 className="font-bold text-sm">SkyLine Media Assistant</h3>
                 <p className="text-xs text-white/60">Powered by AI</p>
               </div>
               <button 

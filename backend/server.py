@@ -410,56 +410,54 @@ class SettingsUpdate(BaseModel):
 # ==================== PRICING PACKAGES (CAD) ====================
 
 PACKAGES = {
-    "starter": {
-        "id": "starter",
-        "name": "Starter Package",
-        "price": 399.00,
+    "quick_aerial": {
+        "id": "quick_aerial",
+        "name": "Quick Aerial",
+        "price": 199.00,
         "currency": "CAD",
-        "description": "Perfect for small residential properties",
+        "description": "Best for small listings, quick flips, and agents testing our service",
         "features": [
-            "Up to 15 aerial photos",
-            "1 property walkthrough video",
+            "8-12 aerial photos",
+            "1 short aerial video (30-45 sec)",
             "Basic color correction",
+            "48-hour delivery",
+            "MLS-ready exports"
+        ],
+        "notes": "No interior work. Shoot time under ~20 minutes.",
+        "recommended_for": "Small listings, quick flips, first-time clients"
+    },
+    "aerial_plus": {
+        "id": "aerial_plus",
+        "name": "Aerial Plus",
+        "price": 299.00,
+        "currency": "CAD",
+        "description": "Best for standard homes and serious real estate agents",
+        "features": [
+            "15-20 aerial photos",
+            "1 cinematic aerial video (60 sec)",
+            "Optional indoor FPV fly-through (simple pass)",
+            "Enhanced color grading",
             "24-48 hour delivery",
             "Commercial usage rights"
         ],
-        "recommended_for": "Single-family homes, condos"
-    },
-    "professional": {
-        "id": "professional",
-        "name": "Professional Package",
-        "price": 799.00,
-        "currency": "CAD",
-        "description": "Ideal for larger properties and real estate agents",
-        "features": [
-            "Up to 30 aerial photos",
-            "2 property videos (aerial + ground)",
-            "Advanced color grading",
-            "Before/After comparison shots",
-            "Interactive virtual tour",
-            "12-24 hour delivery",
-            "Commercial usage rights"
-        ],
-        "recommended_for": "Large homes, estates, commercial properties",
+        "recommended_for": "Standard homes, most real estate agents",
         "popular": True
     },
-    "premium": {
-        "id": "premium",
-        "name": "Premium Package",
-        "price": 1299.00,
+    "fpv_showcase": {
+        "id": "fpv_showcase",
+        "name": "FPV Showcase",
+        "price": 649.00,
         "currency": "CAD",
-        "description": "Complete coverage for luxury and commercial properties",
+        "description": "Best for standout listings that need the wow factor",
         "features": [
-            "Unlimited aerial photos",
-            "4K cinematic video production",
-            "Twilight/sunset shots",
-            "3D property mapping",
-            "Interactive virtual tour",
-            "Social media ready content",
-            "Same-day delivery available",
-            "Full commercial rights"
+            "15 aerial photos",
+            "1 cinematic aerial video",
+            "Full indoor FPV fly-through (stabilized, smooth path)",
+            "Edited highlight video (60-90 sec total)",
+            "Social media cut (vertical reel)",
+            "24-hour delivery"
         ],
-        "recommended_for": "Luxury homes, commercial real estate, developments"
+        "recommended_for": "Standout listings, luxury properties"
     }
 }
 
@@ -707,6 +705,78 @@ async def test_email(admin: dict = Depends(require_admin)):
         return {"message": "Email is currently in mock mode. Configure SMTP settings to send real emails.", "status": "mocked"}
     else:
         raise HTTPException(status_code=500, detail="Failed to send test email. Check your SMTP settings.")
+
+
+# ==================== ADMIN CMS ENDPOINTS ====================
+
+@api_router.get("/admin/site-content")
+async def get_site_content(admin: dict = Depends(require_admin)):
+    """Get editable site content"""
+    content = await db.site_content.find_one({"id": "site_content"}, {"_id": 0})
+    if not content:
+        content = {"id": "site_content", "phone": "", "email": "", "main_location": "", "service_areas": [], "travel_fee_note": "", "fleet": []}
+    return content
+
+@api_router.put("/admin/site-content")
+async def update_site_content(request: Request, admin: dict = Depends(require_admin)):
+    """Update editable site content"""
+    data = await request.json()
+    data["id"] = "site_content"
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.site_content.update_one(
+        {"id": "site_content"},
+        {"$set": data},
+        upsert=True
+    )
+    return {"message": "Site content updated"}
+
+@api_router.get("/site-content")
+async def get_public_site_content():
+    """Get site content for public pages"""
+    content = await db.site_content.find_one({"id": "site_content"}, {"_id": 0})
+    if not content:
+        content = {
+            "phone": "(825) 962-3425",
+            "email": "info@skylinemedia.ca",
+            "main_location": "Central Alberta",
+            "service_areas": [
+                {"name": "Central Alberta (Red Deer & Area)", "fee": 0},
+                {"name": "Edmonton & Area", "fee": 80},
+                {"name": "Calgary & Area", "fee": 80}
+            ],
+            "travel_fee_note": "$80 CAD extra for Edmonton or Calgary. Other locations can be arranged via booking request.",
+            "fleet": []
+        }
+    return content
+
+@api_router.get("/admin/packages")
+async def get_admin_packages(admin: dict = Depends(require_admin)):
+    """Get packages for admin editing"""
+    custom = await db.custom_packages.find_one({"id": "custom_packages"}, {"_id": 0})
+    if custom and custom.get("packages"):
+        return custom["packages"]
+    return list(PACKAGES.values())
+
+@api_router.put("/admin/packages")
+async def update_admin_packages(request: Request, admin: dict = Depends(require_admin)):
+    """Update pricing packages"""
+    global PACKAGES
+    data = await request.json()
+    packages_list = data.get("packages", [])
+    
+    new_packages = {}
+    for pkg in packages_list:
+        new_packages[pkg["id"]] = pkg
+    
+    PACKAGES = new_packages
+    
+    await db.custom_packages.update_one(
+        {"id": "custom_packages"},
+        {"$set": {"id": "custom_packages", "packages": packages_list, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    return {"message": "Packages updated"}
+
 
 
 # ==================== ADMIN DASHBOARD ENDPOINTS ====================
@@ -1542,6 +1612,19 @@ app.add_middleware(
 
 # ==================== STARTUP EVENT ====================
 
+async def photo_cleanup_scheduler():
+    """Background task that runs photo cleanup every 6 hours"""
+    while True:
+        try:
+            await asyncio.sleep(6 * 60 * 60)  # 6 hours
+            deleted = await cleanup_expired_photos()
+            if deleted > 0:
+                logger.info(f"Scheduled cleanup: deleted {deleted} expired photos")
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.error(f"Photo cleanup scheduler error: {e}")
+
 @app.on_event("startup")
 async def startup_event():
     """Seed admin user and settings on startup"""
@@ -1581,6 +1664,40 @@ async def startup_event():
     await db.users.create_index("email", unique=True)
     await db.users.create_index("user_id", unique=True)
     await db.admins.create_index("email", unique=True)
+    
+    # Run initial photo cleanup and start scheduler
+    await cleanup_expired_photos()
+    asyncio.create_task(photo_cleanup_scheduler())
+    
+    # Seed site content defaults if not present
+    existing_content = await db.site_content.find_one({"id": "site_content"})
+    if not existing_content:
+        await db.site_content.insert_one({
+            "id": "site_content",
+            "phone": "(825) 962-3425",
+            "email": "info@skylinemedia.ca",
+            "main_location": "Central Alberta",
+            "service_areas": [
+                {"name": "Central Alberta (Red Deer & Area)", "fee": 0},
+                {"name": "Edmonton & Area", "fee": 80},
+                {"name": "Calgary & Area", "fee": 80}
+            ],
+            "travel_fee_note": "$80 CAD extra for Edmonton or Calgary. Other locations can be arranged via booking request.",
+            "fleet": [
+                {"name": "DJI Mavic 3 Pro", "description": "Flagship tri-camera system with 4/3 CMOS Hasselblad, 5.1K video & 46-min flight time", "image": "/compliance-image.png"},
+                {"name": "DJI Air 3", "description": "Dual-camera powerhouse with 48MP photos, 4K/100fps video & 46-min flight time", "image": "/air3-image.png"},
+                {"name": "DJI Avata 2", "description": "Immersive FPV drone with 4K/60fps, ultra-wide 155° FOV & motion controller", "image": "/avata2-image.png"},
+                {"name": "BetaFPV Pavo 20 Pro", "description": "Indoor FPV drone with 4K camera, designed for smooth interior fly-throughs", "image": ""}
+            ],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    # Load custom packages if saved
+    custom_pkgs = await db.custom_packages.find_one({"id": "custom_packages"}, {"_id": 0})
+    if custom_pkgs and custom_pkgs.get("packages"):
+        global PACKAGES
+        PACKAGES = {pkg["id"]: pkg for pkg in custom_pkgs["packages"]}
+        logger.info("Loaded custom packages from database")
     
     logger.info("Startup complete")
 

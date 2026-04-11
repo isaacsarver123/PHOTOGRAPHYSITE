@@ -76,6 +76,11 @@ const equipment = [
     name: 'DJI Avata 2',
     description: 'Immersive FPV drone with ultra-wide 155° FOV, perfect for cinematic interior and exterior walkthroughs.',
     specs: ['1/1.7" CMOS', '12MP Photos', '4K/60fps Video', '155° Ultra-Wide FOV']
+  },
+  {
+    name: 'BetaFPV Pavo 20 Pro',
+    description: 'Compact indoor FPV drone with 4K camera, purpose-built for smooth, stabilized interior fly-throughs.',
+    specs: ['4K Camera', 'Indoor Optimized', 'Stabilized Flight', 'Ultra Compact']
   }
 ];
 
@@ -210,7 +215,7 @@ export default function Services() {
             {[
               { num: '01', title: 'Book Online', desc: 'Choose your package and schedule a convenient time' },
               { num: '02', title: 'Pre-Flight Call', desc: 'Quick call to discuss property details and shot list' },
-              { num: '03', title: 'Shoot Day', desc: 'Our FAA-certified pilot captures stunning footage' },
+              { num: '03', title: 'Shoot Day', desc: 'Our Transport Canada certified pilot captures stunning footage' },
               { num: '04', title: 'Delivery', desc: 'Receive edited photos and videos within 24-48 hours' }
             ].map((step, idx) => (
               <motion.div

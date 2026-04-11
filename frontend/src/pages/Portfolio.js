@@ -41,7 +41,7 @@ export default function Portfolio() {
           image_url: 'https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1200',
           before_image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
           after_image_url: 'https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=800',
-          location: 'Lake Austin, TX'
+          location: 'Sylvan Lake, AB'
         },
         {
           id: '2',
@@ -49,7 +49,7 @@ export default function Portfolio() {
           description: 'Multi-story commercial building aerial photography for marketing',
           category: 'commercial',
           image_url: 'https://images.unsplash.com/photo-1669003153246-cb591207e66e?w=1200',
-          location: 'Austin, TX'
+          location: 'Red Deer, AB'
         },
         {
           id: '3',
@@ -59,7 +59,7 @@ export default function Portfolio() {
           image_url: 'https://images.unsplash.com/photo-1641441371947-47dd2f4a4276?w=1200',
           before_image_url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
           after_image_url: 'https://images.unsplash.com/photo-1641441371947-47dd2f4a4276?w=800',
-          location: 'Westlake Hills, TX'
+          location: 'Lacombe, AB'
         },
         {
           id: '4',
@@ -67,7 +67,7 @@ export default function Portfolio() {
           description: 'Comprehensive aerial mapping for 500-acre ranch property',
           category: 'land',
           image_url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200',
-          location: 'Hill Country, TX'
+          location: 'Ponoka, AB'
         },
         {
           id: '5',
@@ -75,7 +75,7 @@ export default function Portfolio() {
           description: 'Construction progress documentation for residential development',
           category: 'construction',
           image_url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200',
-          location: 'Round Rock, TX'
+          location: 'Blackfalds, AB'
         },
         {
           id: '6',
@@ -83,7 +83,7 @@ export default function Portfolio() {
           description: 'Premium twilight aerial photography for luxury listing',
           category: 'residential',
           image_url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200',
-          location: 'Barton Creek, TX'
+          location: 'Innisfail, AB'
         }
       ]);
     } finally {
@@ -111,7 +111,7 @@ export default function Portfolio() {
             </h1>
             <p className="text-lg text-white/60 leading-relaxed">
               Browse our collection of aerial photography projects showcasing 
-              residential, commercial, and land properties across Texas.
+              residential, commercial, and land properties across Central Alberta.
             </p>
           </motion.div>
         </div>
@@ -274,7 +274,7 @@ export default function Portfolio() {
               Want Your Property<br />In Our Portfolio?
             </h2>
             <p className="text-black/60 mb-10">
-              Join hundreds of satisfied clients who have elevated their listings with SkyView.
+              Join hundreds of satisfied clients who have elevated their listings with SkyLine Media.
             </p>
             <Link
               to="/booking"

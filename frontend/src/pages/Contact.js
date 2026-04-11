@@ -77,8 +77,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium mb-1">Phone</p>
-                    <a href="tel:+15125550123" className="text-white/60 hover:text-white transition-colors">
-                      (512) 555-0123
+                    <a href="tel:+18259623425" className="text-white/60 hover:text-white transition-colors">
+                      (825) 962-3425
                     </a>
                   </div>
                 </div>
@@ -89,8 +89,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium mb-1">Email</p>
-                    <a href="mailto:info@skyviewdrones.com" className="text-white/60 hover:text-white transition-colors">
-                      info@skyviewdrones.com
+                    <a href="mailto:info@skylinemedia.ca" className="text-white/60 hover:text-white transition-colors">
+                      info@skylinemedia.ca
                     </a>
                   </div>
                 </div>
@@ -101,7 +101,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium mb-1">Service Area</p>
-                    <p className="text-white/60">Austin, TX and surrounding areas<br />Up to 50 miles from downtown</p>
+                    <p className="text-white/60">Central Alberta (Red Deer & Area)<br />Edmonton & Calgary: +$80 CAD travel fee</p>
                   </div>
                 </div>
 

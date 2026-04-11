@@ -26,8 +26,10 @@ const propertyTypes = [
 ];
 
 const serviceAreas = [
-  { value: 'calgary', label: 'Calgary Area' },
-  { value: 'edmonton', label: 'Edmonton Area' }
+  { value: 'central_alberta', label: 'Central Alberta (Red Deer & Area) - No travel fee' },
+  { value: 'edmonton', label: 'Edmonton & Area (+$80 CAD travel fee)' },
+  { value: 'calgary', label: 'Calgary & Area (+$80 CAD travel fee)' },
+  { value: 'other', label: 'Other Location (arranged via request)' }
 ];
 
 export default function Booking() {
@@ -47,7 +49,7 @@ export default function Booking() {
     phone: '',
     property_address: '',
     property_type: '',
-    service_area: 'calgary',
+    service_area: 'central_alberta',
     scheduled_time: '',
     notes: ''
   });
@@ -163,7 +165,7 @@ export default function Booking() {
                     phone: '',
                     property_address: '',
                     property_type: '',
-                    service_area: 'calgary',
+                    service_area: 'central_alberta',
                     scheduled_time: '',
                     notes: ''
                   });
