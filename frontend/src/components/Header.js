@@ -15,7 +15,7 @@ const navLinks = [
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { user, login } = useAuth();
+  const { user } = useAuth();
 
   return (
     <header 
@@ -59,13 +59,13 @@ export default function Header() {
               Dashboard
             </Link>
           ) : (
-            <button
-              onClick={login}
+            <Link
+              to="/login"
               data-testid="login-btn"
               className="text-sm text-white/60 hover:text-white transition-colors"
             >
               Client Login
-            </button>
+            </Link>
           )}
           <Link
             to="/booking"
@@ -119,9 +119,9 @@ export default function Header() {
                     Dashboard
                   </Link>
                 ) : (
-                  <button onClick={login} className="text-white/60 text-left">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-white/60">
                     Client Login
-                  </button>
+                  </Link>
                 )}
                 <Link
                   to="/booking"

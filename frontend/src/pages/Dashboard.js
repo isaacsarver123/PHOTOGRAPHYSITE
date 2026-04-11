@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   House, Images, CalendarDots, SignOut, User, Download, List, X, ArrowRight, Camera
@@ -296,23 +296,85 @@ function MyBookings() {
 
 // Profile
 function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, checkAuth } = useAuth();
+  const [editingName, setEditingName] = useState(false);
+  const [name, setName] = useState(user?.name || '');
+  const [savingName, setSavingName] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState('');
+
+  const handleNameSave = async () => {
+    setSavingName(true);
+    try {
+      await axios.put(`${API}/auth/profile`, { name }, { withCredentials: true });
+      await checkAuth();
+      setEditingName(false);
+    } catch (error) {
+      console.error('Error updating name:', error);
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPwError('');
+    setPwSuccess('');
+
+    if (newPassword !== confirmPassword) {
+      setPwError('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwError('Password must be at least 6 characters');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await axios.post(`${API}/auth/change-password`, {
+        current_password: currentPassword,
+        new_password: newPassword
+      }, { withCredentials: true });
+      setPwSuccess('Password changed successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      setPwError(error.response?.data?.detail || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const inputCls = "w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none";
 
   return (
     <div data-testid="dashboard-profile">
       <h1 className="text-3xl font-black tracking-tight mb-8">Profile</h1>
 
-      <div className="border border-white/10 p-8 bg-[#141414] max-w-2xl">
+      <div className="border border-white/10 p-8 bg-[#141414] max-w-2xl mb-6">
         <div className="flex items-center gap-6 mb-8">
-          {user?.picture ? (
-            <img src={user.picture} alt={user.name} className="w-16 h-16 rounded-full border-2 border-[#d4af37]/30" />
-          ) : (
-            <div className="w-16 h-16 bg-[#d4af37]/10 rounded-full flex items-center justify-center border-2 border-[#d4af37]/30">
-              <User size={28} className="text-[#d4af37]" />
-            </div>
-          )}
+          <div className="w-16 h-16 bg-[#d4af37]/10 rounded-full flex items-center justify-center border-2 border-[#d4af37]/30">
+            <User size={28} className="text-[#d4af37]" />
+          </div>
           <div>
-            <h2 className="text-xl font-bold">{user?.name}</h2>
+            {editingName ? (
+              <div className="flex items-center gap-2">
+                <input value={name} onChange={e => setName(e.target.value)} className={`${inputCls} w-48`} />
+                <button onClick={handleNameSave} disabled={savingName} className="text-sm text-[#d4af37]">{savingName ? '...' : 'Save'}</button>
+                <button onClick={() => { setEditingName(false); setName(user?.name || ''); }} className="text-sm text-white/40">Cancel</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold">{user?.name}</h2>
+                <button onClick={() => setEditingName(true)} className="text-xs text-[#d4af37] hover:text-[#c4a030]">Edit</button>
+              </div>
+            )}
             <p className="text-white/50 text-sm">{user?.email}</p>
           </div>
         </div>
@@ -337,23 +399,74 @@ function Profile() {
           Sign Out
         </button>
       </div>
+
+      {/* Change Password */}
+      <div className="border border-white/10 p-8 bg-[#141414] max-w-2xl">
+        <h2 className="text-lg font-bold mb-4">Change Password</h2>
+        
+        {pwError && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 mb-4">{pwError}</div>}
+        {pwSuccess && <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm px-4 py-3 mb-4">{pwSuccess}</div>}
+        
+        <form onSubmit={handlePasswordChange} className="space-y-4">
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Current Password</label>
+            <input
+              data-testid="current-password"
+              type="password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              required
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">New Password</label>
+            <input
+              data-testid="new-password"
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              required
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Confirm New Password</label>
+            <input
+              data-testid="confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+              className={inputCls}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={changingPassword}
+            data-testid="change-password-btn"
+            className="bg-[#d4af37] text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] disabled:opacity-50"
+          >
+            {changingPassword ? 'Changing...' : 'Change Password'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
 
 // Main Dashboard Component
 export default function Dashboard() {
-  const { user, loading, login } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const passedUser = location.state?.user;
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user && !passedUser) {
-      login();
+    if (!loading && !user) {
+      navigate('/login');
     }
-  }, [loading, user, passedUser, login]);
+  }, [loading, user, navigate]);
 
   if (loading) {
     return (
@@ -363,7 +476,7 @@ export default function Dashboard() {
     );
   }
 
-  const currentUser = user || passedUser;
+  const currentUser = user;
   if (!currentUser) return null;
 
   const navItems = [

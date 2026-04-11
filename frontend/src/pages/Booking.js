@@ -98,7 +98,11 @@ export default function Booking() {
       });
 
       setSubmitted(true);
-      toast.success('Booking request submitted!');
+      if (response.data?.account_created) {
+        toast.success('Booking submitted! Check your email for login credentials.');
+      } else {
+        toast.success('Booking request submitted!');
+      }
     } catch (error) {
       console.error('Booking error:', error);
       toast.error('Failed to submit booking request. Please try again.');
@@ -131,6 +135,14 @@ export default function Booking() {
               Thank you for your booking request. We'll review your request and get back to you within 24 hours 
               with confirmation and a payment link.
             </p>
+            
+            <div className="border border-[#d4af37]/30 bg-[#d4af37]/5 p-4 mb-6 text-sm text-left">
+              <p className="text-[#d4af37] font-medium mb-1">Your Client Account</p>
+              <p className="text-white/60">
+                We've created an account for you using <strong className="text-white">{formData.email}</strong>. 
+                Check your email for your login credentials to access your photos and track bookings.
+              </p>
+            </div>
             
             <div className="border border-white/10 p-6 bg-[#141414] text-left mb-8">
               <h3 className="font-bold mb-4">What's Next?</h3>

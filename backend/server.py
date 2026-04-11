@@ -15,7 +15,25 @@ import httpx
 import bcrypt
 import jwt
 import asyncio
+import secrets
+import string
 import shutil
+
+# Client JWT config
+CLIENT_JWT_SECRET = os.environ.get('JWT_SECRET', os.environ.get('ADMIN_SECRET', 'fallback_secret_change_me'))
+
+def generate_random_password(length=10):
+    chars = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(chars) for _ in range(length))
+
+def create_client_token(user_id: str, email: str) -> str:
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "type": "client_access",
+        "exp": datetime.now(timezone.utc) + timedelta(days=7)
+    }
+    return jwt.encode(payload, CLIENT_JWT_SECRET, algorithm="HS256")
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -462,42 +480,29 @@ PACKAGES = {
 # ==================== AUTH HELPERS ====================
 
 async def get_current_user(request: Request) -> Optional[User]:
-    """Get current user from session token (for client OAuth)"""
-    session_token = request.cookies.get("session_token")
-    if not session_token:
+    """Get current user from JWT cookie or Authorization header"""
+    token = request.cookies.get("client_token")
+    if not token:
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
-            session_token = auth_header[7:]
+            token = auth_header[7:]
     
-    if not session_token:
+    if not token:
         return None
     
-    session_doc = await db.user_sessions.find_one(
-        {"session_token": session_token},
-        {"_id": 0}
-    )
-    
-    if not session_doc:
+    try:
+        payload = jwt.decode(token, CLIENT_JWT_SECRET, algorithms=["HS256"])
+        if payload.get("type") != "client_access":
+            return None
+        user_doc = await db.users.find_one(
+            {"user_id": payload["sub"]},
+            {"_id": 0}
+        )
+        if not user_doc:
+            return None
+        return User(**user_doc)
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
-    
-    expires_at = session_doc.get("expires_at")
-    if isinstance(expires_at, str):
-        expires_at = datetime.fromisoformat(expires_at)
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    
-    if expires_at < datetime.now(timezone.utc):
-        return None
-    
-    user_doc = await db.users.find_one(
-        {"user_id": session_doc["user_id"]},
-        {"_id": 0}
-    )
-    
-    if not user_doc:
-        return None
-    
-    return User(**user_doc)
 
 async def require_auth(request: Request) -> User:
     """Require authenticated user"""
@@ -1178,62 +1183,37 @@ async def download_photo(booking_id: str, filename: str, request: Request):
 
 # ==================== CLIENT AUTH ENDPOINTS ====================
 
-@api_router.post("/auth/session")
-async def create_session(request: Request, response: Response):
-    """Exchange session_id for session_token via Emergent Auth"""
-    body = await request.json()
-    session_id = body.get("session_id")
+class ClientLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class ClientChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+
+class ClientUpdateProfile(BaseModel):
+    name: Optional[str] = None
+
+@api_router.post("/auth/login")
+async def client_login(request_data: ClientLoginRequest, response: Response):
+    """Client login with email/password"""
+    email = request_data.email.lower()
+    user = await db.users.find_one({"email": email}, {"_id": 0})
     
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id required")
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    async with httpx.AsyncClient() as http_client:
-        auth_response = await http_client.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": session_id}
-        )
+    if not user.get("password_hash"):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    if auth_response.status_code != 200:
-        raise HTTPException(status_code=401, detail="Invalid session")
+    if not bcrypt.checkpw(request_data.password.encode("utf-8"), user["password_hash"].encode("utf-8")):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    auth_data = auth_response.json()
-    user_email = auth_data.get("email")
-    user_name = auth_data.get("name")
-    user_picture = auth_data.get("picture")
-    session_token = auth_data.get("session_token")
-    
-    existing_user = await db.users.find_one({"email": user_email}, {"_id": 0})
-    
-    if existing_user:
-        user_id = existing_user["user_id"]
-        await db.users.update_one(
-            {"user_id": user_id},
-            {"$set": {"name": user_name, "picture": user_picture}}
-        )
-    else:
-        user_id = f"user_{uuid.uuid4().hex[:12]}"
-        new_user = {
-            "user_id": user_id,
-            "email": user_email,
-            "name": user_name,
-            "picture": user_picture,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.users.insert_one(new_user)
-    
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
-    session_doc = {
-        "session_id": str(uuid.uuid4()),
-        "user_id": user_id,
-        "session_token": session_token,
-        "expires_at": expires_at.isoformat(),
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.user_sessions.insert_one(session_doc)
+    token = create_client_token(user["user_id"], user["email"])
     
     response.set_cookie(
-        key="session_token",
-        value=session_token,
+        key="client_token",
+        value=token,
         httponly=True,
         secure=True,
         samesite="none",
@@ -1241,8 +1221,8 @@ async def create_session(request: Request, response: Response):
         max_age=7 * 24 * 60 * 60
     )
     
-    user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
-    return user_doc
+    safe_user = {k: v for k, v in user.items() if k != "password_hash"}
+    return safe_user
 
 @api_router.get("/auth/me")
 async def get_me(request: Request):
@@ -1253,14 +1233,49 @@ async def get_me(request: Request):
     return user.model_dump()
 
 @api_router.post("/auth/logout")
-async def logout(request: Request, response: Response):
+async def logout(response: Response):
     """Logout user"""
-    session_token = request.cookies.get("session_token")
-    if session_token:
-        await db.user_sessions.delete_many({"session_token": session_token})
-    
-    response.delete_cookie(key="session_token", path="/")
+    response.delete_cookie(key="client_token", path="/")
     return {"message": "Logged out"}
+
+@api_router.post("/auth/change-password")
+async def change_password(data: ClientChangePassword, request: Request):
+    """Change client password"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_doc = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    if not user_doc or not user_doc.get("password_hash"):
+        raise HTTPException(status_code=400, detail="No password set")
+    
+    if not bcrypt.checkpw(data.current_password.encode("utf-8"), user_doc["password_hash"].encode("utf-8")):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    new_hash = bcrypt.hashpw(data.new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    await db.users.update_one(
+        {"user_id": user.user_id},
+        {"$set": {"password_hash": new_hash}}
+    )
+    return {"message": "Password updated successfully"}
+
+@api_router.put("/auth/profile")
+async def update_profile(data: ClientUpdateProfile, request: Request):
+    """Update client profile"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    update = {}
+    if data.name:
+        update["name"] = data.name
+    
+    if update:
+        await db.users.update_one({"user_id": user.user_id}, {"$set": update})
+    
+    updated = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    safe = {k: v for k, v in updated.items() if k != "password_hash"}
+    return safe
 
 # ==================== PORTFOLIO ENDPOINTS ====================
 
@@ -1306,8 +1321,29 @@ async def create_booking(booking: BookingCreate, request: Request):
     
     package = PACKAGES[booking.package_id]
     
+    # Auto-create client account if one doesn't exist for this email
+    client_email = booking.email.lower()
+    existing_user = await db.users.find_one({"email": client_email}, {"_id": 0})
+    generated_password = None
+    
+    if not existing_user:
+        generated_password = generate_random_password()
+        password_hash = bcrypt.hashpw(generated_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        new_user = {
+            "user_id": user_id,
+            "email": client_email,
+            "name": booking.name,
+            "password_hash": password_hash,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.users.insert_one(new_user)
+        logger.info(f"Auto-created client account for {client_email}")
+    else:
+        user_id = existing_user["user_id"]
+    
     booking_doc = Booking(
-        user_id=user.user_id if user else None,
+        user_id=user_id if not user else user.user_id,
         name=booking.name,
         email=booking.email,
         phone=booking.phone,
@@ -1330,12 +1366,36 @@ async def create_booking(booking: BookingCreate, request: Request):
     # Send booking request confirmation email
     await send_booking_request_email(doc)
     
+    # If a new account was created, send credentials email
+    if generated_password:
+        credentials_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; background-color: #0a0a0a; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: #141414; padding: 40px; border-radius: 8px; border: 1px solid #333;">
+                <h2 style="color: #d4af37; margin-bottom: 20px;">Welcome to SkyLine Media!</h2>
+                <p style="color: #fff;">Hello, {booking.name}!</p>
+                <p style="color: #ccc;">Your booking has been submitted and a client account has been created for you.</p>
+                <p style="color: #ccc;">You can access your photos and track your bookings by logging in:</p>
+                <div style="background: #1a1a1a; padding: 20px; margin: 20px 0; border: 1px solid #333;">
+                    <p style="color: #d4af37; margin: 0 0 10px 0; font-weight: bold;">Your Login Credentials</p>
+                    <p style="color: #fff; margin: 5px 0;">Email: <strong>{client_email}</strong></p>
+                    <p style="color: #fff; margin: 5px 0;">Password: <strong>{generated_password}</strong></p>
+                </div>
+                <p style="color: #999; font-size: 14px;">You can change your password anytime from your dashboard profile. Be sure to save these credentials!</p>
+                <p style="color: #999; font-size: 14px;">We'll review your booking and get back to you within 24 hours.</p>
+            </div>
+        </body>
+        </html>
+        """
+        await send_email(client_email, "SkyLine Media - Your Account Details", credentials_html)
+    
     return {
         "id": booking_doc.id,
         "total_amount": package["price"],
         "currency": "CAD",
         "status": "pending",
-        "message": "Booking request submitted! We'll review and get back to you within 24 hours."
+        "message": "Booking request submitted! We'll review and get back to you within 24 hours.",
+        "account_created": generated_password is not None
     }
 
 @api_router.get("/bookings")

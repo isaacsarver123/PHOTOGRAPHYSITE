@@ -9,7 +9,7 @@ import BookingSuccess from "./pages/BookingSuccess";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
-import AuthCallback from "./pages/AuthCallback";
+import ClientLogin from "./pages/ClientLogin";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Header from "./components/Header";
@@ -20,18 +20,13 @@ import { AuthProvider } from "./context/AuthContext";
 function AppContent() {
   const location = useLocation();
   
-  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-  // Check for session_id in URL fragment for OAuth callback
-  if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
-  }
-  
   const isDashboard = location.pathname.startsWith('/dashboard');
   const isAdmin = location.pathname.startsWith('/admin');
+  const isClientLogin = location.pathname === '/login';
   
   return (
     <>
-      {!isDashboard && !isAdmin && <Header />}
+      {!isDashboard && !isAdmin && !isClientLogin && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/services" element={<Services />} />
@@ -41,12 +36,13 @@ function AppContent() {
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
+        <Route path="/login" element={<ClientLogin />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
       </Routes>
-      {!isDashboard && !isAdmin && <Footer />}
-      {!isAdmin && <ChatWidget />}
+      {!isDashboard && !isAdmin && !isClientLogin && <Footer />}
+      {!isAdmin && !isClientLogin && <ChatWidget />}
       <Toaster position="bottom-right" theme="dark" />
     </>
   );
