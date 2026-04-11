@@ -185,7 +185,7 @@ export default function About() {
                   { name: 'DJI Mavic 3 Pro', specs: '20MP / 5.1K Video / 46min flight' },
                   { name: 'DJI Air 3', specs: '48MP / 4K/100fps / Dual Camera' },
                   { name: 'DJI Avata 2', specs: '12MP / 4K/60fps / 155° FOV' },
-                  { name: 'BetaFPV Pavo 20 Pro', specs: '4K Camera / Indoor FPV' }
+                  { name: 'BetaFPV Pavo 20 Pro (DJI O4 Pro)', specs: '4K Camera / Indoor FPV' }
                 ].map((drone, idx) => (
                   <div key={idx} className="flex items-center justify-between p-4 border border-white/10">
                     <span className="font-medium">{drone.name}</span>

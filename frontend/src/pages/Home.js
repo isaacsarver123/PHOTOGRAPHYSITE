@@ -298,7 +298,7 @@ export default function Home() {
                   { name: "DJI Mavic 3 Pro", desc: "Flagship tri-camera system with 4/3 CMOS Hasselblad, 5.1K video & 46-min flight time" },
                   { name: "DJI Air 3", desc: "Dual-camera powerhouse with 48MP photos, 4K/100fps video & 46-min flight time" },
                   { name: "DJI Avata 2", desc: "Immersive FPV drone with 4K/60fps, ultra-wide 155° FOV & motion controller" },
-                  { name: "BetaFPV Pavo 20 Pro", desc: "Indoor FPV drone with 4K camera, designed for smooth interior fly-throughs" }
+                  { name: "BetaFPV Pavo 20 Pro (DJI O4 Pro)", desc: "Indoor FPV drone with 4K camera, designed for smooth interior fly-throughs" }
                 ].map((drone, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 border border-white/10 hover:border-[#d4af37]/30 transition-colors">
                     <Star size={20} weight="fill" className="text-[#d4af37] mt-0.5 flex-shrink-0" />

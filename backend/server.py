@@ -418,7 +418,6 @@ PACKAGES = {
         "description": "Best for small listings, quick flips, and agents testing our service",
         "features": [
             "8-12 aerial photos",
-            "1 short aerial video (30-45 sec)",
             "Basic color correction",
             "48-hour delivery",
             "MLS-ready exports"
@@ -435,7 +434,6 @@ PACKAGES = {
         "features": [
             "15-20 aerial photos",
             "1 cinematic aerial video (60 sec)",
-            "Optional indoor FPV fly-through (simple pass)",
             "Enhanced color grading",
             "24-48 hour delivery",
             "Commercial usage rights"
@@ -1776,7 +1774,7 @@ async def startup_event():
                 {"name": "DJI Mavic 3 Pro", "description": "Flagship tri-camera system with 4/3 CMOS Hasselblad, 5.1K video & 46-min flight time", "image": "/compliance-image.png"},
                 {"name": "DJI Air 3", "description": "Dual-camera powerhouse with 48MP photos, 4K/100fps video & 46-min flight time", "image": "/air3-image.png"},
                 {"name": "DJI Avata 2", "description": "Immersive FPV drone with 4K/60fps, ultra-wide 155° FOV & motion controller", "image": "/avata2-image.png"},
-                {"name": "BetaFPV Pavo 20 Pro", "description": "Indoor FPV drone with 4K camera, designed for smooth interior fly-throughs", "image": ""}
+                {"name": "BetaFPV Pavo 20 Pro (DJI O4 Pro)", "description": "Indoor FPV drone with 4K camera, designed for smooth interior fly-throughs", "image": ""}
             ],
             "created_at": datetime.now(timezone.utc).isoformat()
         })

@@ -78,7 +78,7 @@ const equipment = [
     specs: ['1/1.7" CMOS', '12MP Photos', '4K/60fps Video', '155° Ultra-Wide FOV']
   },
   {
-    name: 'BetaFPV Pavo 20 Pro',
+    name: 'BetaFPV Pavo 20 Pro (DJI O4 Pro)',
     description: 'Compact indoor FPV drone with 4K camera, purpose-built for smooth, stabilized interior fly-throughs.',
     specs: ['4K Camera', 'Indoor Optimized', 'Stabilized Flight', 'Ultra Compact']
   }
