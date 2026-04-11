@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   House, CalendarDots, Users, EnvelopeSimple, SignOut, ChartBar, 
   CaretRight, Check, X, Upload, Trash, Eye, Clock, CurrencyDollar, Gear, CheckCircle,
-  NotePencil, Package
+  NotePencil, Package, Images, Layout
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -650,6 +650,237 @@ function AdminContacts() {
 }
 
 // Main Admin Dashboard Component
+
+// Admin Portfolio CMS
+function AdminPortfolio() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const categories = ['residential', 'commercial', 'land', 'construction'];
+
+  useEffect(() => { fetchItems(); }, []);
+
+  const fetchItems = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/portfolio`, { headers: getAuthHeaders() });
+      setItems(res.data);
+    } catch (error) {
+      toast.error('Failed to load portfolio');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (item) => {
+    setSaving(true);
+    try {
+      if (item.id) {
+        await axios.put(`${API}/admin/portfolio/${item.id}`, item, { headers: getAuthHeaders() });
+        toast.success('Item updated');
+      } else {
+        await axios.post(`${API}/admin/portfolio`, item, { headers: getAuthHeaders() });
+        toast.success('Item created');
+      }
+      setEditItem(null);
+      fetchItems();
+    } catch (error) {
+      toast.error('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this portfolio item?')) return;
+    try {
+      await axios.delete(`${API}/admin/portfolio/${id}`, { headers: getAuthHeaders() });
+      toast.success('Item deleted');
+      fetchItems();
+    } catch (error) {
+      toast.error('Failed to delete');
+    }
+  };
+
+  const inputCls = "w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none";
+
+  if (loading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-white/5" /></div>;
+
+  return (
+    <div data-testid="admin-portfolio">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-black tracking-tight">Portfolio</h1>
+        <button
+          data-testid="portfolio-add"
+          onClick={() => setEditItem({ title: '', description: '', category: 'residential', image_url: '', before_image_url: '', after_image_url: '', location: '' })}
+          className="bg-[#d4af37] text-black px-4 py-2 text-sm font-medium"
+        >+ Add Item</button>
+      </div>
+
+      {editItem && (
+        <div className="border border-[#d4af37] bg-[#141414] p-6 mb-6">
+          <h2 className="text-lg font-bold mb-4">{editItem.id ? 'Edit Item' : 'New Item'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Title</label>
+              <input value={editItem.title} onChange={e => setEditItem(i => ({ ...i, title: e.target.value }))} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Location</label>
+              <input value={editItem.location} onChange={e => setEditItem(i => ({ ...i, location: e.target.value }))} className={inputCls} placeholder="Red Deer, AB" />
+            </div>
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Category</label>
+              <select value={editItem.category} onChange={e => setEditItem(i => ({ ...i, category: e.target.value }))} className={inputCls}>
+                {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Image URL</label>
+              <input value={editItem.image_url} onChange={e => setEditItem(i => ({ ...i, image_url: e.target.value }))} className={inputCls} />
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm text-white/60 mb-2">Description</label>
+            <input value={editItem.description} onChange={e => setEditItem(i => ({ ...i, description: e.target.value }))} className={inputCls} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Before Image URL (optional)</label>
+              <input value={editItem.before_image_url || ''} onChange={e => setEditItem(i => ({ ...i, before_image_url: e.target.value }))} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm text-white/60 mb-2">After Image URL (optional)</label>
+              <input value={editItem.after_image_url || ''} onChange={e => setEditItem(i => ({ ...i, after_image_url: e.target.value }))} className={inputCls} />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button data-testid="portfolio-save-item" onClick={() => handleSave(editItem)} disabled={saving}
+              className="bg-[#d4af37] text-black px-6 py-2 text-sm font-medium disabled:opacity-50">
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button onClick={() => setEditItem(null)} className="border border-white/20 px-6 py-2 text-sm">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {items.length === 0 ? (
+          <p className="text-white/40 text-center py-12">No portfolio items yet. Click "+ Add Item" to create one.</p>
+        ) : items.map((item) => (
+          <div key={item.id} className="border border-white/10 bg-[#141414] p-4 flex items-center gap-4">
+            {item.image_url && (
+              <img src={item.image_url} alt={item.title} className="w-20 h-14 object-cover flex-shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{item.title}</p>
+              <p className="text-xs text-white/40">{item.category} • {item.location}</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => setEditItem({ ...item })} className="text-sm text-[#d4af37] hover:text-[#c4a030]">Edit</button>
+              <button onClick={() => handleDelete(item.id)} className="text-sm text-red-400 hover:text-red-300">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Admin Home Services CMS
+function AdminHomeServices() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { fetchServices(); }, []);
+
+  const fetchServices = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/home-services`, { headers: getAuthHeaders() });
+      setServices(res.data);
+    } catch (error) {
+      toast.error('Failed to load services');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await axios.put(`${API}/admin/home-services`, { services }, { headers: getAuthHeaders() });
+      toast.success('Home services updated');
+    } catch (error) {
+      toast.error('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateService = (idx, field, value) => {
+    const s = [...services];
+    s[idx] = { ...s[idx], [field]: value };
+    setServices(s);
+  };
+
+  const addService = () => setServices(s => [...s, { title: '', description: '', image: '', span: 'md:col-span-7' }]);
+  const removeService = (idx) => setServices(s => s.filter((_, i) => i !== idx));
+
+  if (loading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-white/5" /></div>;
+
+  const inputCls = "w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none";
+
+  return (
+    <div data-testid="admin-home-services">
+      <h1 className="text-3xl font-black tracking-tight mb-8">Home Page Services</h1>
+      <p className="text-sm text-white/40 mb-6">Edit the "What We Offer" service cards shown on the homepage.</p>
+
+      <div className="space-y-4">
+        {services.map((svc, idx) => (
+          <div key={idx} className="border border-white/10 bg-[#141414] p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-white/60">Service #{idx + 1}</span>
+              <button onClick={() => removeService(idx)} className="text-red-400 hover:text-red-300"><X size={16} /></button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-white/40 mb-1">Title</label>
+                <input value={svc.title} onChange={e => updateService(idx, 'title', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 mb-1">Description</label>
+                <input value={svc.description} onChange={e => updateService(idx, 'description', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 mb-1">Image URL</label>
+                <input value={svc.image} onChange={e => updateService(idx, 'image', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+            <div className="mt-2">
+              <label className="block text-xs text-white/40 mb-1">Column Span</label>
+              <select value={svc.span} onChange={e => updateService(idx, 'span', e.target.value)} className={`${inputCls} w-48`}>
+                <option value="md:col-span-5">Narrow (5/12)</option>
+                <option value="md:col-span-6">Half (6/12)</option>
+                <option value="md:col-span-7">Wide (7/12)</option>
+                <option value="md:col-span-12">Full Width (12/12)</option>
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 flex gap-3">
+        <button onClick={addService} className="border border-white/20 px-4 py-2 text-sm hover:bg-white/5">+ Add Service</button>
+        <button data-testid="home-services-save" onClick={handleSave} disabled={saving}
+          className="bg-[#d4af37] text-black px-8 py-2 text-sm font-medium uppercase hover:bg-[#c4a030] disabled:opacity-50">
+          {saving ? 'Saving...' : 'Save Services'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Admin Site Content CMS
 function AdminContent() {
   const [content, setContent] = useState({
@@ -1133,6 +1364,8 @@ export default function AdminDashboard() {
     { path: '/admin/dashboard/bookings', icon: CalendarDots, label: 'Bookings' },
     { path: '/admin/dashboard/clients', icon: Users, label: 'Clients' },
     { path: '/admin/dashboard/contacts', icon: EnvelopeSimple, label: 'Contacts' },
+    { path: '/admin/dashboard/portfolio', icon: Images, label: 'Portfolio' },
+    { path: '/admin/dashboard/home-services', icon: Layout, label: 'Home Services' },
     { path: '/admin/dashboard/content', icon: NotePencil, label: 'Site Content' },
     { path: '/admin/dashboard/packages', icon: Package, label: 'Packages' },
     { path: '/admin/dashboard/settings', icon: Gear, label: 'Settings' }
@@ -1205,6 +1438,8 @@ export default function AdminDashboard() {
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="clients" element={<AdminClients />} />
           <Route path="contacts" element={<AdminContacts />} />
+          <Route path="portfolio" element={<AdminPortfolio />} />
+          <Route path="home-services" element={<AdminHomeServices />} />
           <Route path="content" element={<AdminContent />} />
           <Route path="packages" element={<AdminPackages />} />
           <Route path="settings" element={<AdminSettings />} />

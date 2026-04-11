@@ -145,7 +145,7 @@ export default function Pricing() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mt-8 p-6 border border-[#d4af37]/30 bg-[#d4af37]/5"
           >
             <div className="flex items-start gap-4">
@@ -169,7 +169,7 @@ export default function Pricing() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="text-center mb-12"
           >
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">How Booking Works</h2>
@@ -187,7 +187,7 @@ export default function Pricing() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className="text-center"
               >
@@ -208,7 +208,7 @@ export default function Pricing() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mb-12"
           >
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Optional Add-ons</h2>
@@ -225,7 +225,7 @@ export default function Pricing() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className="border border-white/10 p-6"
               >
@@ -244,7 +244,7 @@ export default function Pricing() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mb-12"
           >
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Frequently Asked</h2>
@@ -262,7 +262,7 @@ export default function Pricing() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className="border-b border-white/10 pb-6"
               >
@@ -280,7 +280,7 @@ export default function Pricing() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
           >
             <h2 className="text-3xl sm:text-4xl font-black tracking-tighter mb-6">
               Need a Custom Quote?

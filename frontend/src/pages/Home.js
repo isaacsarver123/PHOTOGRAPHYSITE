@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Drone, Certificate, Timer, Star } from '@phosphor-icons/react';
+import axios from 'axios';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const heroImage = "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1920&q=80";
 const equipmentImage = "/equipment-image.png";
@@ -8,7 +12,7 @@ const complianceImage = "/compliance-image.png";
 const air3Image = "/air3-image.png";
 const avata2Image = "/avata2-image.png";
 
-const services = [
+const defaultServices = [
   {
     title: "Residential",
     description: "Showcase homes with stunning aerial perspectives",
@@ -43,6 +47,14 @@ const stats = [
 ];
 
 export default function Home() {
+  const [services, setServices] = useState(defaultServices);
+
+  useEffect(() => {
+    axios.get(`${API}/home-services`).then(res => {
+      if (res.data && res.data.length > 0) setServices(res.data);
+    }).catch(() => {});
+  }, []);
+
   return (
     <main data-testid="home-page">
       {/* Hero Section */}
@@ -116,7 +128,7 @@ export default function Home() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className="text-center"
               >
@@ -134,7 +146,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mb-16"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">What We Offer</p>
@@ -147,7 +159,7 @@ export default function Home() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className={`${service.span} group relative overflow-hidden h-[300px] md:h-[400px] border border-white/10`}
               >
@@ -168,7 +180,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mt-12 text-center"
           >
             <Link
@@ -190,7 +202,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, amount: 0.3 }}
               className="relative"
             >
               <img
@@ -208,7 +220,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, amount: 0.3 }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">About SkyLine Media</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
@@ -256,7 +268,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, amount: 0.3 }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">Our Equipment</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
@@ -278,7 +290,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, amount: 0.3 }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-6">Our Fleet</p>
               <div className="space-y-4">
@@ -321,7 +333,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
           >
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-6">
               Ready to Elevate<br />Your Listings?

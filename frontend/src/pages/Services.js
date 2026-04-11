@@ -114,7 +114,7 @@ export default function Services() {
             key={service.id}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className={`border-b border-white/10 ${idx === 0 ? 'border-t' : ''}`}
           >
             <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
@@ -165,7 +165,7 @@ export default function Services() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mb-16"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">Our Equipment</p>
@@ -178,7 +178,7 @@ export default function Services() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className="border border-white/10 p-8"
               >
@@ -204,7 +204,7 @@ export default function Services() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
             className="mb-16"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">How It Works</p>
@@ -222,7 +222,7 @@ export default function Services() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, amount: 0.3 }}
                 transition={{ delay: idx * 0.1 }}
                 className="relative"
               >
@@ -241,7 +241,7 @@ export default function Services() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.3 }}
           >
             <h2 className="text-3xl sm:text-4xl font-black tracking-tighter mb-6">
               Ready to Get Started?

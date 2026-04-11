@@ -778,6 +778,95 @@ async def update_admin_packages(request: Request, admin: dict = Depends(require_
     return {"message": "Packages updated"}
 
 
+# ==================== ADMIN PORTFOLIO CRUD ====================
+
+@api_router.get("/admin/portfolio")
+async def get_admin_portfolio(admin: dict = Depends(require_admin)):
+    """Get all portfolio items for admin editing"""
+    items = await db.portfolio.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return items
+
+@api_router.post("/admin/portfolio")
+async def create_portfolio_item(request: Request, admin: dict = Depends(require_admin)):
+    """Create a new portfolio item"""
+    data = await request.json()
+    item = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title", ""),
+        "description": data.get("description", ""),
+        "category": data.get("category", "residential"),
+        "image_url": data.get("image_url", ""),
+        "before_image_url": data.get("before_image_url", ""),
+        "after_image_url": data.get("after_image_url", ""),
+        "location": data.get("location", ""),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.portfolio.insert_one(item)
+    item.pop("_id", None)
+    return item
+
+@api_router.put("/admin/portfolio/{item_id}")
+async def update_portfolio_item(item_id: str, request: Request, admin: dict = Depends(require_admin)):
+    """Update a portfolio item"""
+    data = await request.json()
+    data.pop("_id", None)
+    data.pop("id", None)
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.portfolio.update_one({"id": item_id}, {"$set": data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return {"message": "Portfolio item updated"}
+
+@api_router.delete("/admin/portfolio/{item_id}")
+async def delete_portfolio_item(item_id: str, admin: dict = Depends(require_admin)):
+    """Delete a portfolio item"""
+    result = await db.portfolio.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return {"message": "Portfolio item deleted"}
+
+# ==================== ADMIN HOME SERVICES ====================
+
+@api_router.get("/admin/home-services")
+async def get_admin_home_services(admin: dict = Depends(require_admin)):
+    """Get home page services for editing"""
+    data = await db.home_services.find_one({"id": "home_services"}, {"_id": 0})
+    if not data or not data.get("services"):
+        return [
+            {"title": "Residential", "description": "Showcase homes with stunning aerial perspectives", "image": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80", "span": "md:col-span-7"},
+            {"title": "Commercial", "description": "Professional imagery for commercial properties", "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80", "span": "md:col-span-5"},
+            {"title": "Land & Development", "description": "Aerial mapping and survey photography", "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80", "span": "md:col-span-5"},
+            {"title": "Construction Progress", "description": "Document your build with regular aerial updates", "image": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80", "span": "md:col-span-7"}
+        ]
+    return data["services"]
+
+@api_router.put("/admin/home-services")
+async def update_home_services(request: Request, admin: dict = Depends(require_admin)):
+    """Update home page services"""
+    data = await request.json()
+    services_list = data.get("services", [])
+    await db.home_services.update_one(
+        {"id": "home_services"},
+        {"$set": {"id": "home_services", "services": services_list, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    return {"message": "Home services updated"}
+
+@api_router.get("/home-services")
+async def get_public_home_services():
+    """Get home page services for public display"""
+    data = await db.home_services.find_one({"id": "home_services"}, {"_id": 0})
+    if not data or not data.get("services"):
+        return [
+            {"title": "Residential", "description": "Showcase homes with stunning aerial perspectives", "image": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80", "span": "md:col-span-7"},
+            {"title": "Commercial", "description": "Professional imagery for commercial properties", "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80", "span": "md:col-span-5"},
+            {"title": "Land & Development", "description": "Aerial mapping and survey photography", "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80", "span": "md:col-span-5"},
+            {"title": "Construction Progress", "description": "Document your build with regular aerial updates", "image": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80", "span": "md:col-span-7"}
+        ]
+    return data["services"]
+
+
+
 
 # ==================== ADMIN DASHBOARD ENDPOINTS ====================
 
