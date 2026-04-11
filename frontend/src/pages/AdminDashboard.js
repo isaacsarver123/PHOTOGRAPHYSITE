@@ -649,6 +649,187 @@ function AdminContacts() {
 }
 
 // Main Admin Dashboard Component
+// Admin Settings
+function AdminSettings() {
+  const [settings, setSettings] = useState({
+    photo_storage_path: '',
+    photo_retention_days: 30,
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_user: '',
+    smtp_password: '',
+    sender_email: ''
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  useEffect(() => { fetchSettings(); }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/settings`, { headers: getAuthHeaders() });
+      setSettings(prev => ({ ...prev, ...res.data }));
+    } catch (error) {
+      toast.error('Failed to load settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = { ...settings };
+      if (payload.smtp_password === '***') delete payload.smtp_password;
+      delete payload.id;
+      delete payload.updated_at;
+      await axios.put(`${API}/admin/settings`, payload, { headers: getAuthHeaders() });
+      toast.success('Settings saved successfully');
+    } catch (error) {
+      toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestEmail = async () => {
+    setTesting(true);
+    try {
+      const res = await axios.post(`${API}/admin/test-email`, {}, { headers: getAuthHeaders() });
+      if (res.data.status === 'mocked') {
+        toast.info(res.data.message);
+      } else {
+        toast.success('Test email sent! Check your inbox.');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send test email');
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  if (loading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-white/5" /></div>;
+
+  return (
+    <div data-testid="admin-settings">
+      <h1 className="text-3xl font-black tracking-tight mb-8">Settings</h1>
+
+      {/* Photo Storage */}
+      <div className="border border-white/10 bg-[#141414] p-6 mb-6">
+        <h2 className="text-lg font-bold mb-4">Photo Storage</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Storage Path</label>
+            <input
+              data-testid="settings-storage-path"
+              value={settings.photo_storage_path}
+              onChange={e => setSettings(s => ({ ...s, photo_storage_path: e.target.value }))}
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">Retention Period (days)</label>
+            <input
+              data-testid="settings-retention-days"
+              type="number"
+              value={settings.photo_retention_days}
+              onChange={e => setSettings(s => ({ ...s, photo_retention_days: parseInt(e.target.value) || 30 }))}
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SMTP Configuration */}
+      <div className="border border-white/10 bg-[#141414] p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Email (SMTP) Configuration</h2>
+          <span className={`text-xs px-3 py-1 ${settings.smtp_host && settings.smtp_user ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+            {settings.smtp_host && settings.smtp_user ? 'Configured' : 'Not Configured'}
+          </span>
+        </div>
+        <p className="text-sm text-white/40 mb-6">
+          Configure SMTP to send real email notifications for booking updates, approvals, and photo delivery.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-white/60 mb-2">SMTP Host</label>
+            <input
+              data-testid="settings-smtp-host"
+              value={settings.smtp_host}
+              onChange={e => setSettings(s => ({ ...s, smtp_host: e.target.value }))}
+              placeholder="smtp.gmail.com"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none placeholder:text-white/20"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">SMTP Port</label>
+            <input
+              data-testid="settings-smtp-port"
+              type="number"
+              value={settings.smtp_port}
+              onChange={e => setSettings(s => ({ ...s, smtp_port: parseInt(e.target.value) || 587 }))}
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">SMTP Username / Email</label>
+            <input
+              data-testid="settings-smtp-user"
+              value={settings.smtp_user}
+              onChange={e => setSettings(s => ({ ...s, smtp_user: e.target.value }))}
+              placeholder="your-email@gmail.com"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none placeholder:text-white/20"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-2">SMTP Password / App Password</label>
+            <input
+              data-testid="settings-smtp-password"
+              type="password"
+              value={settings.smtp_password}
+              onChange={e => setSettings(s => ({ ...s, smtp_password: e.target.value }))}
+              placeholder="App password"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none placeholder:text-white/20"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm text-white/60 mb-2">Sender Email Address</label>
+            <input
+              data-testid="settings-sender-email"
+              value={settings.sender_email}
+              onChange={e => setSettings(s => ({ ...s, sender_email: e.target.value }))}
+              placeholder="noreply@skylinemedia.ca"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none placeholder:text-white/20"
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex gap-3">
+          <button
+            data-testid="settings-test-email"
+            onClick={handleTestEmail}
+            disabled={testing}
+            className="px-4 py-2 text-sm border border-white/20 hover:bg-white/5 transition-colors disabled:opacity-50"
+          >
+            {testing ? 'Sending...' : 'Send Test Email'}
+          </button>
+        </div>
+      </div>
+
+      {/* Save */}
+      <button
+        data-testid="settings-save"
+        onClick={handleSave}
+        disabled={saving}
+        className="bg-[#d4af37] text-black px-8 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors disabled:opacity-50"
+      >
+        {saving ? 'Saving...' : 'Save Settings'}
+      </button>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -673,7 +854,8 @@ export default function AdminDashboard() {
     { path: '/admin/dashboard', icon: House, label: 'Overview', exact: true },
     { path: '/admin/dashboard/bookings', icon: CalendarDots, label: 'Bookings' },
     { path: '/admin/dashboard/clients', icon: Users, label: 'Clients' },
-    { path: '/admin/dashboard/contacts', icon: EnvelopeSimple, label: 'Contacts' }
+    { path: '/admin/dashboard/contacts', icon: EnvelopeSimple, label: 'Contacts' },
+    { path: '/admin/dashboard/settings', icon: Gear, label: 'Settings' }
   ];
 
   const isActive = (path, exact = false) => {
@@ -743,6 +925,7 @@ export default function AdminDashboard() {
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="clients" element={<AdminClients />} />
           <Route path="contacts" element={<AdminContacts />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Routes>
       </main>
     </div>

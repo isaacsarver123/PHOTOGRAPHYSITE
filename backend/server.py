@@ -34,6 +34,10 @@ ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@skylinemedia.ca')
+SMTP_HOST = os.environ.get('SMTP_HOST', '')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 PHOTO_STORAGE_PATH = os.environ.get('PHOTO_STORAGE_PATH', str(ROOT_DIR / 'uploads'))
 PHOTO_RETENTION_DAYS = int(os.environ.get('PHOTO_RETENTION_DAYS', '30'))
 
@@ -85,27 +89,55 @@ def create_refresh_token(user_id: str) -> str:
 # ==================== EMAIL HELPER ====================
 
 async def send_email(to_email: str, subject: str, html_content: str):
-    """Send email using Resend API"""
-    if not RESEND_API_KEY or RESEND_API_KEY == 're_mock_key':
-        logger.info(f"[MOCK EMAIL] To: {to_email}, Subject: {subject}")
-        logger.info(f"[MOCK EMAIL] Content: {html_content[:200]}...")
-        return {"id": "mock_email_id", "status": "mocked"}
+    """Send email via SMTP or Resend API"""
+    # Try SMTP first
+    if SMTP_HOST and SMTP_USER and SMTP_PASSWORD:
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            msg = MIMEMultipart('alternative')
+            msg['From'] = SENDER_EMAIL
+            msg['To'] = to_email
+            msg['Subject'] = subject
+            msg.attach(MIMEText(html_content, 'html'))
+            
+            def _send():
+                with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(SMTP_USER, SMTP_PASSWORD)
+                    server.send_message(msg)
+            
+            await asyncio.to_thread(_send)
+            logger.info(f"Email sent via SMTP to {to_email}: {subject}")
+            return {"id": "smtp_sent", "status": "sent"}
+        except Exception as e:
+            logger.error(f"SMTP email failed: {e}")
+            return None
     
-    try:
-        import resend
-        resend.api_key = RESEND_API_KEY
-        params = {
-            "from": SENDER_EMAIL,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_content
-        }
-        email = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"Email sent to {to_email}: {email}")
-        return email
-    except Exception as e:
-        logger.error(f"Failed to send email: {e}")
-        return None
+    # Fall back to Resend
+    if RESEND_API_KEY and RESEND_API_KEY != 're_mock_key':
+        try:
+            import resend
+            resend.api_key = RESEND_API_KEY
+            params = {
+                "from": SENDER_EMAIL,
+                "to": [to_email],
+                "subject": subject,
+                "html": html_content
+            }
+            email = await asyncio.to_thread(resend.Emails.send, params)
+            logger.info(f"Email sent via Resend to {to_email}: {email}")
+            return email
+        except Exception as e:
+            logger.error(f"Resend email failed: {e}")
+            return None
+    
+    # Mock fallback
+    logger.info(f"[MOCK EMAIL] To: {to_email}, Subject: {subject}")
+    logger.info(f"[MOCK EMAIL] Content: {html_content[:200]}...")
+    return {"id": "mock_email_id", "status": "mocked"}
 
 async def send_booking_request_email(booking: dict):
     """Send booking request confirmation email"""
@@ -319,6 +351,11 @@ class Settings(BaseModel):
     id: str = "app_settings"
     photo_storage_path: str = "/app/backend/uploads"
     photo_retention_days: int = 30
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    sender_email: str = "noreply@skylinemedia.ca"
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # ==================== REQUEST/RESPONSE MODELS ====================
@@ -364,6 +401,11 @@ class BookingStatusUpdate(BaseModel):
 class SettingsUpdate(BaseModel):
     photo_storage_path: Optional[str] = None
     photo_retention_days: Optional[int] = None
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_user: Optional[str] = None
+    smtp_password: Optional[str] = None
+    sender_email: Optional[str] = None
 
 # ==================== PRICING PACKAGES (CAD) ====================
 
@@ -576,14 +618,22 @@ async def get_settings(admin: dict = Depends(require_admin)):
         settings = {
             "id": "app_settings",
             "photo_storage_path": PHOTO_STORAGE_PATH,
-            "photo_retention_days": PHOTO_RETENTION_DAYS
+            "photo_retention_days": PHOTO_RETENTION_DAYS,
+            "smtp_host": SMTP_HOST,
+            "smtp_port": SMTP_PORT,
+            "smtp_user": SMTP_USER,
+            "smtp_password": "***" if SMTP_PASSWORD else "",
+            "sender_email": SENDER_EMAIL
         }
+    else:
+        if settings.get("smtp_password"):
+            settings["smtp_password"] = "***"
     return settings
 
 @api_router.put("/admin/settings")
 async def update_settings(settings_update: SettingsUpdate, admin: dict = Depends(require_admin)):
     """Update app settings"""
-    global PHOTO_STORAGE_PATH, PHOTO_RETENTION_DAYS, UPLOAD_DIR
+    global PHOTO_STORAGE_PATH, PHOTO_RETENTION_DAYS, UPLOAD_DIR, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SENDER_EMAIL
     
     update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
     
@@ -598,19 +648,66 @@ async def update_settings(settings_update: SettingsUpdate, admin: dict = Depends
         PHOTO_RETENTION_DAYS = settings_update.photo_retention_days
         update_data["photo_retention_days"] = PHOTO_RETENTION_DAYS
     
+    if settings_update.smtp_host is not None:
+        SMTP_HOST = settings_update.smtp_host
+        update_data["smtp_host"] = SMTP_HOST
+    
+    if settings_update.smtp_port is not None:
+        SMTP_PORT = settings_update.smtp_port
+        update_data["smtp_port"] = SMTP_PORT
+    
+    if settings_update.smtp_user is not None:
+        SMTP_USER = settings_update.smtp_user
+        update_data["smtp_user"] = SMTP_USER
+    
+    if settings_update.smtp_password is not None:
+        SMTP_PASSWORD = settings_update.smtp_password
+        update_data["smtp_password"] = SMTP_PASSWORD
+    
+    if settings_update.sender_email is not None:
+        SENDER_EMAIL = settings_update.sender_email
+        update_data["sender_email"] = SENDER_EMAIL
+    
     await db.settings.update_one(
         {"id": "app_settings"},
         {"$set": update_data},
         upsert=True
     )
     
-    return {"message": "Settings updated", "settings": update_data}
+    masked = {**update_data}
+    if "smtp_password" in masked and masked["smtp_password"]:
+        masked["smtp_password"] = "***"
+    
+    return {"message": "Settings updated", "settings": masked}
 
 @api_router.post("/admin/cleanup-photos")
 async def trigger_photo_cleanup(admin: dict = Depends(require_admin)):
     """Manually trigger photo cleanup"""
     deleted_count = await cleanup_expired_photos()
     return {"message": f"Cleaned up {deleted_count} expired photos"}
+
+@api_router.post("/admin/test-email")
+async def test_email(admin: dict = Depends(require_admin)):
+    """Send a test email to verify SMTP configuration"""
+    test_html = """
+    <html>
+    <body style="font-family: Arial, sans-serif; background-color: #0a0a0a; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #141414; padding: 40px; border-radius: 8px; border: 1px solid #333;">
+            <h2 style="color: #d4af37; margin-bottom: 20px;">SkyLine Media - Test Email</h2>
+            <p style="color: #fff;">This is a test email from your SkyLine Media SMTP configuration.</p>
+            <p style="color: #999;">If you're seeing this, your email setup is working correctly!</p>
+        </div>
+    </body>
+    </html>
+    """
+    result = await send_email(admin["email"], "SkyLine Media - SMTP Test", test_html)
+    if result and result.get("status") != "mocked":
+        return {"message": "Test email sent successfully", "status": "sent"}
+    elif result and result.get("status") == "mocked":
+        return {"message": "Email is currently in mock mode. Configure SMTP settings to send real emails.", "status": "mocked"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to send test email. Check your SMTP settings.")
+
 
 # ==================== ADMIN DASHBOARD ENDPOINTS ====================
 

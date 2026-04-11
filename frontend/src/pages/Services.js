@@ -64,18 +64,18 @@ const services = [
 const equipment = [
   {
     name: 'DJI Mavic 3 Pro',
-    description: 'Our primary workhorse featuring a 4/3 CMOS Hasselblad camera with 20MP photos and 5.1K video.',
+    description: 'Our flagship tri-camera drone with a 4/3 CMOS Hasselblad camera for stunning 20MP photos and 5.1K video.',
     specs: ['4/3" CMOS Sensor', '20MP Photos', '5.1K Video', '46min Flight Time']
   },
   {
-    name: 'DJI Inspire 3',
-    description: 'Cinema-grade aerial platform for premium video production with full-frame sensor and 8K capability.',
-    specs: ['Full Frame Sensor', '8K Video', 'ProRes RAW', 'Interchangeable Lenses']
+    name: 'DJI Air 3',
+    description: 'Dual-camera powerhouse delivering 48MP stills and 4K/100fps video in a portable, high-performance package.',
+    specs: ['1/1.3" CMOS Dual Cam', '48MP Photos', '4K/100fps Video', '46min Flight Time']
   },
   {
-    name: 'DJI Mini 4 Pro',
-    description: 'Compact and versatile drone perfect for tight spaces and indoor-adjacent aerial shots.',
-    specs: ['1/1.3" CMOS', '48MP Photos', '4K HDR Video', 'Sub-250g Weight']
+    name: 'DJI Avata 2',
+    description: 'Immersive FPV drone with ultra-wide 155° FOV, perfect for cinematic interior and exterior walkthroughs.',
+    specs: ['1/1.7" CMOS', '12MP Photos', '4K/60fps Video', '155° Ultra-Wide FOV']
   }
 ];
 

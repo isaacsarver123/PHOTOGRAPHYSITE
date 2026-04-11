@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Drone, Certificate, Timer, Star } from '@phosphor-icons/react';
 
 const heroImage = "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1920&q=80";
-const droneImage = "https://images.unsplash.com/photo-1506947411487-a56738267384?w=800&q=80";
-const pilotImage = "https://images.unsplash.com/photo-1547044283-81919b74c110?w=800&q=80";
+const equipmentImage = "/equipment-image.png";
+const complianceImage = "/compliance-image.png";
+const fleetImage = "https://images.unsplash.com/photo-1768571845597-38f066307f1e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzZ8MHwxfHNlYXJjaHwzfHxESkklMjBkcm9uZSUyMGZseWluZyUyMGFlcmlhbCUyMHBob3RvZ3JhcGh5fGVufDB8fHx8MTc3NTg4Mjc1Nnww&ixlib=rb-4.1.0&q=85";
 
 const services = [
   {
@@ -106,7 +107,7 @@ export default function Home() {
       </section>
 
       {/* Stats Bar */}
-      <section className="bg-[#d4af37] text-black py-12" data-testid="stats-section">
+      <section className="bg-[#141414] border-y border-white/10 py-12" data-testid="stats-section">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, idx) => (
@@ -118,8 +119,8 @@ export default function Home() {
                 transition={{ delay: idx * 0.1 }}
                 className="text-center"
               >
-                <p className="text-4xl md:text-5xl font-black tracking-tighter">{stat.value}</p>
-                <p className="text-sm text-black/60 mt-2">{stat.label}</p>
+                <p className="text-4xl md:text-5xl font-black tracking-tighter text-white">{stat.value}</p>
+                <p className="text-sm text-white/50 mt-2">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -192,8 +193,8 @@ export default function Home() {
               className="relative"
             >
               <img
-                src={pilotImage}
-                alt="Drone pilot operating equipment"
+                src={complianceImage}
+                alt="DJI Mavic 3 Pro - Transport Canada Compliant"
                 className="w-full aspect-[4/5] object-cover"
               />
               <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-[#d4af37] text-black p-6 md:p-8">
@@ -265,21 +266,11 @@ export default function Home() {
                 stand out.
               </p>
 
-              <div className="space-y-4">
-                {[
-                  { name: "DJI Mavic 3 Pro", desc: "Flagship camera system, 4/3 CMOS sensor" },
-                  { name: "DJI Inspire 3", desc: "Cinema-grade 8K video capability" },
-                  { name: "DJI Mini 4 Pro", desc: "Compact, versatile, perfect for tight spaces" }
-                ].map((drone, idx) => (
-                  <div key={idx} className="flex items-start gap-4 p-4 border border-white/10">
-                    <Star size={20} weight="fill" className="text-[#d4af37] mt-0.5" />
-                    <div>
-                      <p className="font-medium">{drone.name}</p>
-                      <p className="text-sm text-white/60">{drone.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <img
+                src={equipmentImage}
+                alt="Our Professional Equipment"
+                className="w-full rounded-lg"
+              />
             </motion.div>
 
             <motion.div
@@ -287,11 +278,30 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
             >
-              <img
-                src={droneImage}
-                alt="DJI Drone"
-                className="w-full aspect-square object-cover"
-              />
+              <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-6">Our Fleet</p>
+              <div className="space-y-4">
+                {[
+                  { name: "DJI Mavic 3 Pro", desc: "Flagship tri-camera system with 4/3 CMOS Hasselblad, 5.1K video & 46-min flight time" },
+                  { name: "DJI Air 3", desc: "Dual-camera powerhouse with 48MP photos, 4K/100fps video & 46-min flight time" },
+                  { name: "DJI Avata 2", desc: "Immersive FPV drone with 4K/60fps, ultra-wide 155° FOV & motion controller" }
+                ].map((drone, idx) => (
+                  <div key={idx} className="flex items-start gap-4 p-4 border border-white/10 hover:border-[#d4af37]/30 transition-colors">
+                    <Star size={20} weight="fill" className="text-[#d4af37] mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">{drone.name}</p>
+                      <p className="text-sm text-white/60">{drone.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8">
+                <img
+                  src={fleetImage}
+                  alt="DJI Drone in flight"
+                  className="w-full aspect-video object-cover border border-white/10"
+                />
+              </div>
             </motion.div>
           </div>
         </div>
