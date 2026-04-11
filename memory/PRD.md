@@ -9,48 +9,37 @@ Build a website for a drone aerial photography business specializing in DJI high
 - Main Location: **Central Alberta (Red Deer & Area)**
 - Service Areas: Central Alberta (free), Edmonton (+$80), Calgary (+$80), Others by arrangement
 - Phone: **(825) 962-3425**
-- Email: info@skylinemedia.ca
 - Compliance: **Transport Canada** certified
 
 ## Pricing Packages (CAD)
-- **Quick Aerial**: $199 - 8-12 photos, 1 short video, 48hr delivery
-- **Aerial Plus**: $299 - 15-20 photos, cinematic video, optional FPV, 24-48hr (POPULAR)
-- **FPV Showcase**: $649 - 15 photos, full FPV fly-through, highlight video, social media cut, 24hr
+- **Quick Aerial**: $199 - 8-12 photos, basic color correction, 48hr delivery, MLS-ready
+- **Aerial Plus**: $299 - 15-20 photos, 1 cinematic video (60s), enhanced color grading, 24-48hr (POPULAR)
+- **FPV Showcase**: $649 - 15 photos, cinematic video, full indoor FPV fly-through, highlight video, social reel, 24hr
 
 ## Drone Fleet
-- DJI Mavic 3 Pro, DJI Air 3, DJI Avata 2, BetaFPV Pavo 20 Pro (indoor FPV)
+- DJI Mavic 3 Pro, DJI Air 3, DJI Avata 2, BetaFPV Pavo 20 Pro (DJI O4 Pro)
+
+## Client Auth
+- **Email/password** — no Google OAuth
+- Account auto-created on first booking with random password emailed
+- Client can change password and name from Dashboard > Profile
+- JWT stored in httpOnly cookies
 
 ## Features Implemented
-
-### Marketing Website
-- [x] Home page with gold-themed branding, scroll animations (replay on scroll up/down)
-- [x] Dynamic "What We Offer" services section (fetches from API, admin-editable)
-- [x] Services, Portfolio, Pricing, Contact, About pages
+- [x] Full marketing site (Home, Services, Portfolio, Pricing, Contact, About)
 - [x] AI Chat Widget (Claude Sonnet 4.5)
-- [x] All content Central Alberta / Transport Canada
+- [x] Client email/password auth with auto-account creation
+- [x] Client dashboard (overview, photos, bookings, profile with password change)
+- [x] Admin dashboard with full CMS (portfolio, home services, site content, packages, settings)
+- [x] Stripe LIVE payments (CAD)
+- [x] SMTP email infrastructure (configurable, currently mocked)
+- [x] 30-day auto-deletion scheduler for photos
+- [x] Booking approval workflow
 
-### Admin CMS (Dashboard)
-- [x] **Portfolio CRUD** — Create, edit, delete portfolio items
-- [x] **Home Services Editor** — Edit "What We Offer" cards (title, desc, image, layout)
-- [x] **Site Content** — Phone, email, locations, fleet, service areas
-- [x] **Pricing Packages** — Edit all 3 tiers
-- [x] **SMTP Settings** — Email config with test button
-- [x] **Photo Storage** — Path and retention settings
-- [x] Bookings, Clients, Contacts management
-
-### Client Features
-- [x] Booking request, Google OAuth login, photo download (30-day retention)
-
-### Integrations
-- [x] Stripe LIVE (CAD), Claude AI chat, Google OAuth, SMTP infrastructure, 30-day auto-deletion
-
-## Admin Credentials
-- Email: isaacsarver100@gmail.com | Password: Isabella0116! | URL: /admin
-
-## Technical Stack
-React + Tailwind + Framer Motion | FastAPI + MongoDB | Stripe | Claude AI | Google OAuth
+## Admin: isaacsarver100@gmail.com / Isabella0116! at /admin
+## Client login at /login
 
 ## Next Steps
-1. SMTP credentials via Admin > Settings
-2. Custom domain setup
+1. Configure SMTP via Admin > Settings
+2. Custom domain
 3. Local storage path for production
