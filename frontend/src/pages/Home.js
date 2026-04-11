@@ -128,7 +128,7 @@ export default function Home() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.3 }}
+                viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className="text-center"
               >
@@ -146,7 +146,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
             className="mb-16"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">What We Offer</p>
@@ -159,7 +159,7 @@ export default function Home() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.3 }}
+                viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className={`${service.span} group relative overflow-hidden h-[300px] md:h-[400px] border border-white/10`}
               >
@@ -180,7 +180,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
             className="mt-12 text-center"
           >
             <Link
@@ -202,7 +202,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
               className="relative"
             >
               <img
@@ -220,7 +220,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">About SkyLine Media</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
@@ -268,7 +268,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">Our Equipment</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
@@ -290,7 +290,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-6">Our Fleet</p>
               <div className="space-y-4">
@@ -333,7 +333,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
           >
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-6">
               Ready to Elevate<br />Your Listings?

@@ -268,7 +268,7 @@ export default function Portfolio() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
           >
             <h2 className="text-3xl sm:text-4xl font-black tracking-tighter mb-6">
               Want Your Property<br />In Our Portfolio?

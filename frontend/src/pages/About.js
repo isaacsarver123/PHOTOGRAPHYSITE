@@ -72,7 +72,7 @@ export default function About() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
             >
               <Target size={48} className="mb-6" />
               <h2 className="text-3xl font-bold tracking-tight mb-4">Our Mission</h2>
@@ -86,7 +86,7 @@ export default function About() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
               <Star size={48} className="mb-6" />
@@ -107,7 +107,7 @@ export default function About() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
             className="mb-16"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">Why Choose Us</p>
@@ -136,7 +136,7 @@ export default function About() {
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.3 }}
+                viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className="border border-white/10 p-8"
               >
@@ -156,7 +156,7 @@ export default function About() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
             >
               <img
                 src={droneImage}
@@ -168,7 +168,7 @@ export default function About() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">Our Equipment</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
@@ -204,7 +204,7 @@ export default function About() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
             className="mb-16"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-white/60 mb-4">Service Areas</p>
@@ -221,7 +221,7 @@ export default function About() {
                 key={idx}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.3 }}
+                viewport={{ once: true }}
                 transition={{ delay: idx * 0.05 }}
                 className="border border-white/10 p-4 text-center"
               >
@@ -242,7 +242,7 @@ export default function About() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.3 }}
+            viewport={{ once: true }}
           >
             <h2 className="text-3xl sm:text-4xl font-black tracking-tighter mb-6">
               Ready to Work Together?

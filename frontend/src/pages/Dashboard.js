@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  House, Images, CalendarDots, Receipt, SignOut, User, Download, List, X 
+  House, Images, CalendarDots, SignOut, User, Download, List, X, ArrowRight, Camera
 } from '@phosphor-icons/react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -34,35 +34,66 @@ function DashboardOverview() {
 
   return (
     <div data-testid="dashboard-overview">
-      <h1 className="text-3xl font-black tracking-tight mb-8">
-        Welcome back, {user?.name?.split(' ')[0] || 'there'}!
-      </h1>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <p className="text-sm text-[#d4af37] mb-1">Welcome back</p>
+        <h1 className="text-3xl font-black tracking-tight mb-8">
+          {user?.name?.split(' ')[0] || 'there'}
+        </h1>
+      </motion.div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-        <div className="border border-white/10 p-6 bg-[#141414]">
-          <p className="text-4xl font-black">{stats.total_bookings}</p>
-          <p className="text-sm text-white/60">Total Bookings</p>
-        </div>
-        <div className="border border-white/10 p-6 bg-[#141414]">
-          <p className="text-4xl font-black">{stats.completed_bookings}</p>
-          <p className="text-sm text-white/60">Completed Shoots</p>
-        </div>
-        <div className="border border-white/10 p-6 bg-[#141414]">
-          <p className="text-4xl font-black">{stats.total_photos}</p>
-          <p className="text-sm text-white/60">Photos Available</p>
-        </div>
+        {[
+          { value: stats.total_bookings, label: 'Total Bookings', color: 'border-[#d4af37]/30' },
+          { value: stats.completed_bookings, label: 'Completed Shoots', color: 'border-green-500/30' },
+          { value: stats.total_photos, label: 'Photos Available', color: 'border-blue-500/30' }
+        ].map((stat, idx) => (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+            className={`border ${stat.color} bg-[#141414] p-6`}
+          >
+            <p className="text-4xl font-black">{stat.value}</p>
+            <p className="text-sm text-white/50 mt-1">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+        <Link to="/booking" className="border border-white/10 bg-[#141414] p-6 group hover:border-[#d4af37]/50 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold mb-1">Book a Shoot</p>
+              <p className="text-sm text-white/50">Schedule your next aerial photography session</p>
+            </div>
+            <ArrowRight size={20} className="text-white/30 group-hover:text-[#d4af37] transition-colors" />
+          </div>
+        </Link>
+        <Link to="/dashboard/photos" className="border border-white/10 bg-[#141414] p-6 group hover:border-[#d4af37]/50 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold mb-1">View Photos</p>
+              <p className="text-sm text-white/50">Browse and download your aerial shots</p>
+            </div>
+            <ArrowRight size={20} className="text-white/30 group-hover:text-[#d4af37] transition-colors" />
+          </div>
+        </Link>
       </div>
 
       {/* Recent Bookings */}
       <div>
-        <h2 className="text-xl font-bold mb-4">Recent Bookings</h2>
+        <h2 className="text-lg font-bold mb-4">Recent Bookings</h2>
         {bookings.length === 0 ? (
-          <div className="border border-white/10 p-8 text-center bg-[#141414]">
-            <p className="text-white/60 mb-4">No bookings yet</p>
+          <div className="border border-dashed border-white/20 p-12 text-center">
+            <Camera size={40} className="mx-auto mb-4 text-white/20" />
+            <p className="text-white/50 mb-4">No bookings yet</p>
             <Link
               to="/booking"
-              className="bg-white text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-white/90 transition-colors inline-block"
+              data-testid="first-booking-btn"
+              className="bg-[#d4af37] text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors inline-block"
             >
               Book Your First Shoot
             </Link>
@@ -70,23 +101,25 @@ function DashboardOverview() {
         ) : (
           <div className="border border-white/10 overflow-hidden">
             <table className="w-full">
-              <thead className="bg-[#141414]">
+              <thead className="bg-white/5">
                 <tr>
-                  <th className="text-left p-4 text-xs uppercase tracking-wider text-white/60">Date</th>
-                  <th className="text-left p-4 text-xs uppercase tracking-wider text-white/60">Package</th>
-                  <th className="text-left p-4 text-xs uppercase tracking-wider text-white/60">Status</th>
+                  <th className="text-left p-4 text-xs uppercase tracking-wider text-white/40">Date</th>
+                  <th className="text-left p-4 text-xs uppercase tracking-wider text-white/40">Package</th>
+                  <th className="text-left p-4 text-xs uppercase tracking-wider text-white/40">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {bookings.map((booking) => (
-                  <tr key={booking.id} className="border-t border-white/10">
-                    <td className="p-4">{booking.scheduled_date}</td>
-                    <td className="p-4 capitalize">{booking.package_id}</td>
+                  <tr key={booking.id} className="border-t border-white/5 hover:bg-white/[0.02]">
+                    <td className="p-4 text-sm">{booking.scheduled_date}</td>
+                    <td className="p-4 text-sm capitalize">{booking.package_id?.replace('_', ' ')}</td>
                     <td className="p-4">
                       <span className={`text-xs px-2 py-1 ${
                         booking.status === 'completed' ? 'bg-green-500/20 text-green-400' :
                         booking.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-yellow-500/20 text-yellow-400'
+                        booking.status === 'approved' ? 'bg-[#d4af37]/20 text-[#d4af37]' :
+                        booking.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                        'bg-white/10 text-white/60'
                       }`}>
                         {booking.status}
                       </span>
@@ -124,7 +157,8 @@ function MyPhotos() {
 
   return (
     <div data-testid="dashboard-photos">
-      <h1 className="text-3xl font-black tracking-tight mb-8">My Photos</h1>
+      <h1 className="text-3xl font-black tracking-tight mb-2">My Photos</h1>
+      <p className="text-sm text-white/40 mb-8">Photos are available for download for 30 days after your first download.</p>
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -133,11 +167,11 @@ function MyPhotos() {
           ))}
         </div>
       ) : photos.length === 0 ? (
-        <div className="border border-white/10 p-12 text-center bg-[#141414]">
-          <Images size={48} className="mx-auto mb-4 text-white/40" />
-          <p className="text-white/60 mb-4">No photos available yet</p>
-          <p className="text-sm text-white/40">
-            Photos will appear here after your shoot is completed
+        <div className="border border-dashed border-white/20 p-16 text-center">
+          <Images size={48} className="mx-auto mb-4 text-white/20" />
+          <p className="text-white/50 mb-2">No photos available yet</p>
+          <p className="text-sm text-white/30">
+            Photos will appear here after your shoot is completed and edited
           </p>
         </div>
       ) : (
@@ -147,13 +181,13 @@ function MyPhotos() {
               <img
                 src={photo.thumbnail_url}
                 alt={photo.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <a
                   href={photo.download_url}
                   download
-                  className="p-3 bg-white text-black hover:bg-white/90 transition-colors"
+                  className="p-3 bg-[#d4af37] text-black hover:bg-[#c4a030] transition-colors"
                 >
                   <Download size={20} />
                 </a>
@@ -189,10 +223,14 @@ function MyBookings() {
   return (
     <div data-testid="dashboard-bookings">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black tracking-tight">My Bookings</h1>
+        <div>
+          <h1 className="text-3xl font-black tracking-tight">My Bookings</h1>
+          <p className="text-sm text-white/40 mt-1">Track all your aerial photography sessions</p>
+        </div>
         <Link
           to="/booking"
-          className="bg-white text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-white/90 transition-colors"
+          data-testid="new-booking-btn"
+          className="bg-[#d4af37] text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors"
         >
           New Booking
         </Link>
@@ -205,44 +243,50 @@ function MyBookings() {
           ))}
         </div>
       ) : bookings.length === 0 ? (
-        <div className="border border-white/10 p-12 text-center bg-[#141414]">
-          <CalendarDots size={48} className="mx-auto mb-4 text-white/40" />
-          <p className="text-white/60 mb-4">No bookings yet</p>
+        <div className="border border-dashed border-white/20 p-16 text-center">
+          <CalendarDots size={48} className="mx-auto mb-4 text-white/20" />
+          <p className="text-white/50 mb-4">No bookings yet</p>
           <Link
             to="/booking"
-            className="bg-white text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-white/90 transition-colors inline-block"
+            className="bg-[#d4af37] text-black px-6 py-3 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors inline-block"
           >
             Book Your First Shoot
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {bookings.map((booking) => (
-            <div key={booking.id} className="border border-white/10 p-6 bg-[#141414]">
+            <motion.div
+              key={booking.id}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border border-white/10 p-6 bg-[#141414] hover:border-white/20 transition-colors"
+            >
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
                   <p className="font-bold mb-1">{booking.property_address}</p>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-white/50">
                     {booking.scheduled_date} at {booking.scheduled_time}
                   </p>
                 </div>
-                <div className="text-right">
-                  <span className={`text-xs px-3 py-1 ${
-                    booking.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                    booking.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
-                    booking.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
-                    'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {booking.status}
-                  </span>
-                </div>
+                <span className={`text-xs px-3 py-1 ${
+                  booking.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                  booking.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
+                  booking.status === 'approved' ? 'bg-[#d4af37]/20 text-[#d4af37]' :
+                  booking.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                  'bg-white/10 text-white/60'
+                }`}>
+                  {booking.status}
+                </span>
               </div>
-              <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap gap-4 text-sm">
-                <span className="text-white/60">Package: <span className="text-white capitalize">{booking.package_id}</span></span>
-                <span className="text-white/60">Type: <span className="text-white capitalize">{booking.property_type}</span></span>
-                <span className="text-white/60">Total: <span className="text-white">${booking.total_amount}</span></span>
+              <div className="mt-4 pt-4 border-t border-white/5 flex flex-wrap gap-6 text-sm">
+                <span className="text-white/40">Package: <span className="text-white/80 capitalize">{booking.package_id?.replace('_', ' ')}</span></span>
+                <span className="text-white/40">Type: <span className="text-white/80 capitalize">{booking.property_type}</span></span>
+                {booking.total_amount && (
+                  <span className="text-white/40">Total: <span className="text-white/80">${booking.total_amount} CAD</span></span>
+                )}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
@@ -261,35 +305,35 @@ function Profile() {
       <div className="border border-white/10 p-8 bg-[#141414] max-w-2xl">
         <div className="flex items-center gap-6 mb-8">
           {user?.picture ? (
-            <img src={user.picture} alt={user.name} className="w-20 h-20 rounded-full" />
+            <img src={user.picture} alt={user.name} className="w-16 h-16 rounded-full border-2 border-[#d4af37]/30" />
           ) : (
-            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center">
-              <User size={32} />
+            <div className="w-16 h-16 bg-[#d4af37]/10 rounded-full flex items-center justify-center border-2 border-[#d4af37]/30">
+              <User size={28} className="text-[#d4af37]" />
             </div>
           )}
           <div>
             <h2 className="text-xl font-bold">{user?.name}</h2>
-            <p className="text-white/60">{user?.email}</p>
+            <p className="text-white/50 text-sm">{user?.email}</p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-between py-3 border-b border-white/10">
-            <span className="text-white/60">Email</span>
-            <span>{user?.email}</span>
+        <div className="space-y-0">
+          <div className="flex justify-between py-4 border-b border-white/5">
+            <span className="text-white/40 text-sm">Email</span>
+            <span className="text-sm">{user?.email}</span>
           </div>
-          <div className="flex justify-between py-3 border-b border-white/10">
-            <span className="text-white/60">Member Since</span>
-            <span>{new Date(user?.created_at).toLocaleDateString()}</span>
+          <div className="flex justify-between py-4 border-b border-white/5">
+            <span className="text-white/40 text-sm">Member Since</span>
+            <span className="text-sm">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</span>
           </div>
         </div>
 
         <button
           onClick={logout}
           data-testid="logout-btn"
-          className="mt-8 flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
+          className="mt-8 flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
         >
-          <SignOut size={20} />
+          <SignOut size={18} />
           Sign Out
         </button>
       </div>
@@ -301,14 +345,11 @@ function Profile() {
 export default function Dashboard() {
   const { user, loading, login } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Check if user data was passed from AuthCallback
   const passedUser = location.state?.user;
 
   useEffect(() => {
-    // If not loading and no user, redirect to login
     if (!loading && !user && !passedUser) {
       login();
     }
@@ -317,16 +358,13 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        <div className="w-10 h-10 border-2 border-[#d4af37]/30 border-t-[#d4af37] rounded-full animate-spin" />
       </div>
     );
   }
 
   const currentUser = user || passedUser;
-
-  if (!currentUser) {
-    return null;
-  }
+  if (!currentUser) return null;
 
   const navItems = [
     { path: '/dashboard', icon: House, label: 'Overview', exact: true },
@@ -344,29 +382,30 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0A0A0A] flex" data-testid="client-dashboard">
       {/* Sidebar */}
       <aside className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-[#141414] border-r border-white/10 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform`}>
-        <div className="p-6 border-b border-white/10">
+        <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white flex items-center justify-center">
-              <span className="text-black font-black text-lg">SV</span>
+            <img src="/logo.png" alt="SkyLine Media" className="h-10 w-auto" />
+            <div>
+              <span className="font-bold tracking-tight text-sm block leading-tight">SKYLINE</span>
+              <span className="text-[10px] text-white/40 tracking-[0.15em] uppercase">Media</span>
             </div>
-            <span className="font-bold tracking-tight">SKYVIEW</span>
           </Link>
         </div>
 
-        <nav className="p-4">
+        <nav className="p-3 space-y-1">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => setSidebarOpen(false)}
               data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
-              className={`flex items-center gap-3 px-4 py-3 mb-1 transition-colors ${
+              className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
                 isActive(item.path, item.exact) 
-                  ? 'bg-white text-black' 
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'bg-[#d4af37]/10 text-[#d4af37] border-l-2 border-[#d4af37]' 
+                  : 'text-white/50 hover:text-white hover:bg-white/5 border-l-2 border-transparent'
               }`}
             >
-              <item.icon size={20} />
+              <item.icon size={18} weight={isActive(item.path, item.exact) ? 'fill' : 'regular'} />
               {item.label}
             </Link>
           ))}
@@ -375,7 +414,8 @@ export default function Dashboard() {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
           <Link
             to="/booking"
-            className="block w-full bg-white text-black px-4 py-3 text-sm font-medium tracking-wide uppercase text-center hover:bg-white/90 transition-colors"
+            data-testid="sidebar-new-booking"
+            className="block w-full bg-[#d4af37] text-black px-4 py-3 text-sm font-medium tracking-wide uppercase text-center hover:bg-[#c4a030] transition-colors"
           >
             New Booking
           </Link>
@@ -394,18 +434,16 @@ export default function Dashboard() {
       <main className="flex-1 min-h-screen">
         {/* Mobile header */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 bg-[#0A0A0A]">
-          <button onClick={() => setSidebarOpen(true)} className="p-2">
+          <button onClick={() => setSidebarOpen(true)} className="p-2" data-testid="mobile-menu-btn">
             <List size={24} />
           </button>
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white flex items-center justify-center">
-              <span className="text-black font-black text-sm">SV</span>
-            </div>
+            <img src="/logo.png" alt="SkyLine Media" className="h-8 w-auto" />
           </Link>
           <div className="w-10" />
         </div>
 
-        <div className="p-6 md:p-12">
+        <div className="p-6 md:p-12 max-w-6xl">
           <Routes>
             <Route index element={<DashboardOverview />} />
             <Route path="photos" element={<MyPhotos />} />
