@@ -7,10 +7,12 @@ Build a website for a drone aerial photography business specializing in DJI high
 - Rebranded from SkyView to **SkyLine Media**
 - Changed currency from USD to **CAD (Canadian Dollars)**
 - Service areas: **Calgary & Edmonton, Alberta**
-- New booking flow: **Request → Admin Approve → Client Pays**
+- New booking flow: **Request -> Admin Approve -> Client Pays**
 - **30-day photo retention** after first download
 - Using **Stripe LIVE key** for real payments
 - Configurable photo storage path
+- SMTP email infrastructure added (configurable via Admin Dashboard)
+- Fleet updated to: **DJI Mavic 3 Pro, DJI Air 3, DJI Avata 2**
 
 ## User Personas
 1. **Real Estate Agents** - Need professional aerial photos for listings
@@ -26,11 +28,11 @@ Build a website for a drone aerial photography business specializing in DJI high
 ## Booking Flow
 1. Client submits booking REQUEST (selects package, date, time, area)
 2. Admin reviews request in dashboard
-3. Admin **Approves** booking → System sends payment email to client
-4. Client clicks payment link → Stripe checkout (CAD)
-5. Payment confirmed → Booking status changes to "confirmed"
-6. Shoot completed → Admin uploads photos
-7. Client notified → Can download for 30 days
+3. Admin **Approves** booking -> System sends payment email to client
+4. Client clicks payment link -> Stripe checkout (CAD)
+5. Payment confirmed -> Booking status changes to "confirmed"
+6. Shoot completed -> Admin uploads photos
+7. Client notified -> Can download for 30 days
 
 ## Features Implemented
 
@@ -42,6 +44,10 @@ Build a website for a drone aerial photography business specializing in DJI high
 - [x] Contact page with quote form
 - [x] About page (Calgary & Edmonton focus)
 - [x] AI Chat Widget (Claude Sonnet 4.5)
+- [x] Custom uploaded images (Equipment, Transport Canada Compliance sections)
+- [x] Updated fleet: DJI Mavic 3 Pro, Air 3, Avata 2
+- [x] Stats section with white text on dark background
+- [x] New Skyline Media logo (golden peaks)
 
 ### Client Features
 - [x] Booking request submission (not instant payment)
@@ -58,12 +64,16 @@ Build a website for a drone aerial photography business specializing in DJI high
 - [x] Upload photos for client delivery
 - [x] View clients and contact requests
 - [x] Configurable photo storage path
+- [x] **SMTP Email Settings** in Admin Dashboard (host, port, user, password, sender)
+- [x] Test email button to verify SMTP config
+- [x] Settings page with photo storage + SMTP config
 
 ### Integrations
 - [x] Stripe LIVE payments (CAD currency)
 - [x] Claude Sonnet 4.5 AI chat
 - [x] Emergent Google OAuth
-- [x] Email notifications (MOCKED)
+- [x] SMTP Email support (infrastructure ready, awaiting user credentials)
+- [x] Resend email fallback (if configured)
 
 ## Admin Credentials
 - **Email**: isaacsarver100@gmail.com
@@ -74,6 +84,7 @@ Build a website for a drone aerial photography business specializing in DJI high
 - Photo storage: Configurable via PHOTO_STORAGE_PATH env or admin settings
 - Retention: 30 days (configurable via PHOTO_RETENTION_DAYS)
 - Stripe: LIVE key configured
+- SMTP: Configurable via admin dashboard settings page
 
 ## Technical Stack
 - Frontend: React, Tailwind CSS, Framer Motion
@@ -81,15 +92,18 @@ Build a website for a drone aerial photography business specializing in DJI high
 - Auth: JWT (admin), Emergent OAuth (clients)
 - Payments: Stripe (CAD)
 - AI: Claude Sonnet 4.5
+- Email: SMTP (configurable) / Resend (fallback)
 
 ## For Local Server Setup
 To run locally:
 1. Set PHOTO_STORAGE_PATH to your preferred drive location
 2. Configure MongoDB connection
 3. Update domain/URLs as needed
-4. Consider setting up Resend for real emails
+4. Configure SMTP in Admin Dashboard -> Settings
 
 ## Next Steps
-1. Add Resend API key for real email notifications
-2. Set up custom domain when ready
-3. Configure local storage path for production
+1. User to provide SMTP credentials (Gmail app password or other SMTP service)
+2. Update admin email/password in dashboard if desired
+3. Set up custom domain when ready
+4. Configure local storage path for production
+5. Verify 30-day auto-deletion logic
