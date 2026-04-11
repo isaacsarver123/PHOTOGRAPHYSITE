@@ -869,6 +869,120 @@ async def get_public_home_services():
     return data["services"]
 
 
+# ==================== FULL CMS ENDPOINTS ====================
+
+# Default content for all sections
+DEFAULTS = {
+    "hero": {
+        "headline": "Aerial Photography\nFor Real Estate",
+        "subtitle": "Professional drone photography and videography that makes your property listings stand out. Serving Central Alberta.",
+        "cta_text": "Book a Shoot",
+        "cta_link": "/booking",
+        "background_image": "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1920&q=80"
+    },
+    "stats": [
+        {"value": "500+", "label": "Properties Shot"},
+        {"value": "50+", "label": "Real Estate Agents"},
+        {"value": "24hr", "label": "Average Delivery"},
+        {"value": "100%", "label": "Client Satisfaction"}
+    ],
+    "about": {
+        "tagline": "Central Alberta & Red Deer",
+        "headline": "Aerial Perspectives That\nSell Properties",
+        "description": "Serving Central Alberta, Red Deer, and surrounding areas. We deliver exceptional aerial photography that helps real estate professionals stand out in a competitive market. Our fleet of DJI drones captures every angle with precision and artistry. Edmonton and Calgary available for an additional $80 CAD travel fee.",
+        "compliance_title": "Transport Canada Compliant",
+        "compliance_text": "All our pilots hold Transport Canada Advanced Operations certificates, maintaining full compliance with Canadian aviation regulations.",
+        "compliance_image": "/compliance-image.png",
+        "about_page_hero_image": "/about-pilot.png",
+        "about_page_equipment_image": "/about-equipment.jpeg",
+        "certifications": ["Transport Canada Advanced Operations", "Liability Insurance", "Part 107 Equivalent"],
+        "difference_items": [
+            {"title": "Transport Canada Certified", "description": "All our pilots hold Transport Canada Advanced Operations certificates and maintain full liability insurance."},
+            {"title": "Premium Equipment", "description": "We use only the latest DJI and FPV drones including the Mavic 3 Pro, Air 3, Avata 2, and Pavo 20 Pro for indoor flights."},
+            {"title": "Local Expertise", "description": "Based in Central Alberta, we know the area intimately and understand what makes Alberta properties special."}
+        ],
+        "service_cities": ["Red Deer", "Lacombe", "Sylvan Lake", "Blackfalds", "Ponoka", "Innisfail", "Olds", "Penhold", "Edmonton (+$80)", "Calgary (+$80)", "Stettler", "Rocky Mountain House"]
+    },
+    "faq": [
+        {"question": "What areas do you serve?", "answer": "We're based in Central Alberta (Red Deer area) with no travel fee. Edmonton and Calgary are available for an additional $80 CAD travel fee. Other locations can be arranged via booking request."},
+        {"question": "How does the booking approval work?", "answer": "After you submit a request, we review availability and confirm details. Once approved, you'll receive a payment link via email."},
+        {"question": "Do you offer indoor FPV fly-throughs?", "answer": "Yes! Our FPV Showcase package includes a full indoor fly-through using our BetaFPV Pavo 20 Pro drone. The Aerial Plus package also includes an optional simple indoor pass."},
+        {"question": "What if the weather is bad?", "answer": "We monitor weather closely and will reschedule free of charge if conditions are unsafe for flying."},
+        {"question": "How long are photos available?", "answer": "Photos are available for download for 30 days after your first download. Make sure to save them!"}
+    ],
+    "addons": [
+        {"name": "Twilight Photography", "price": 149, "description": "Golden hour & sunset shots"},
+        {"name": "Rush Delivery", "price": 99, "description": "Same-day turnaround"},
+        {"name": "Social Media Package", "price": 79, "description": "Vertical reels & optimized content"},
+        {"name": "Travel Fee (Edm/Cgy)", "price": 80, "description": "For Edmonton or Calgary area shoots"}
+    ],
+    "contact": {
+        "phone": "(825) 962-3425",
+        "email": "info@skylinemedia.ca",
+        "address": "Central Alberta, Red Deer & Area",
+        "hours": "Mon-Fri: 8am-6pm, Sat: 9am-4pm, Sun: By appointment",
+        "response_time": "We typically respond within 2-4 hours during business hours."
+    }
+}
+
+async def get_cms(collection_name: str, default_key: str):
+    """Get CMS content from DB or return defaults"""
+    data = await db.cms.find_one({"id": collection_name}, {"_id": 0})
+    if data and data.get("content"):
+        return data["content"]
+    return DEFAULTS.get(default_key, {})
+
+async def set_cms(collection_name: str, content):
+    """Save CMS content to DB"""
+    await db.cms.update_one(
+        {"id": collection_name},
+        {"$set": {"id": collection_name, "content": content, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+
+# Public endpoints
+@api_router.get("/cms/hero")
+async def get_hero():
+    return await get_cms("hero", "hero")
+
+@api_router.get("/cms/stats")
+async def get_stats():
+    return await get_cms("stats", "stats")
+
+@api_router.get("/cms/about")
+async def get_about():
+    return await get_cms("about", "about")
+
+@api_router.get("/cms/faq")
+async def get_faq():
+    return await get_cms("faq", "faq")
+
+@api_router.get("/cms/addons")
+async def get_addons():
+    return await get_cms("addons", "addons")
+
+@api_router.get("/cms/contact")
+async def get_contact():
+    return await get_cms("contact", "contact")
+
+# Admin endpoints
+@api_router.get("/admin/cms/{section}")
+async def admin_get_cms(section: str, admin: dict = Depends(require_admin)):
+    if section not in DEFAULTS:
+        raise HTTPException(status_code=404, detail="Section not found")
+    return await get_cms(section, section)
+
+@api_router.put("/admin/cms/{section}")
+async def admin_update_cms(section: str, request: Request, admin: dict = Depends(require_admin)):
+    if section not in DEFAULTS:
+        raise HTTPException(status_code=404, detail="Section not found")
+    data = await request.json()
+    content = data.get("content", data)
+    await set_cms(section, content)
+    return {"message": f"{section} content updated"}
+
+
+
 
 
 # ==================== ADMIN DASHBOARD ENDPOINTS ====================
@@ -1080,25 +1194,41 @@ async def update_contact_status(
 # ==================== PHOTO UPLOAD ENDPOINTS ====================
 
 @api_router.post("/admin/bookings/{booking_id}/photos")
+def get_client_folder_name(name: str, email: str) -> str:
+    """Create a safe folder name from client name and email"""
+    import re
+    safe_name = re.sub(r'[^\w\s-]', '', name.strip()).replace(' ', '-').lower()
+    safe_email = email.strip().lower().replace('@', '_at_').replace('.', '_')
+    return f"{safe_name}_{safe_email}" if safe_name else safe_email
+
 async def upload_photo(
     booking_id: str,
     file: UploadFile = File(...),
     title: str = Form(""),
     admin: dict = Depends(require_admin)
 ):
-    """Upload photo for a booking"""
+    """Upload photo for a booking - stored in client's folder"""
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Get client info for folder naming
+    user_id = booking.get("user_id", "")
+    client = await db.users.find_one({"user_id": user_id}, {"_id": 0}) if user_id else None
+    
+    if client:
+        folder_name = get_client_folder_name(client.get("name", ""), client.get("email", ""))
+    else:
+        folder_name = get_client_folder_name(booking.get("name", ""), booking.get("email", ""))
     
     ext = Path(file.filename).suffix or ".jpg"
     photo_id = str(uuid.uuid4())
     filename = f"{photo_id}{ext}"
     
-    booking_dir = Path(PHOTO_STORAGE_PATH) / booking_id
-    booking_dir.mkdir(exist_ok=True, parents=True)
+    client_dir = Path(PHOTO_STORAGE_PATH) / folder_name / booking_id
+    client_dir.mkdir(exist_ok=True, parents=True)
     
-    file_path = booking_dir / filename
+    file_path = client_dir / filename
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
@@ -1106,7 +1236,7 @@ async def upload_photo(
     
     photo = ClientPhoto(
         id=photo_id,
-        user_id=booking.get("user_id", ""),
+        user_id=user_id,
         booking_id=booking_id,
         title=title or file.filename,
         filename=filename,
@@ -1118,6 +1248,7 @@ async def upload_photo(
     
     doc = photo.model_dump()
     doc["created_at"] = doc["created_at"].isoformat()
+    doc["folder_name"] = folder_name
     await db.client_photos.insert_one(doc)
     
     return {"id": photo_id, "url": photo.url, "message": "Photo uploaded"}
@@ -1129,7 +1260,12 @@ async def delete_photo(photo_id: str, admin: dict = Depends(require_admin)):
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
     
-    file_path = Path(PHOTO_STORAGE_PATH) / photo["booking_id"] / photo["filename"]
+    folder = photo.get("folder_name", "")
+    if folder:
+        file_path = Path(PHOTO_STORAGE_PATH) / folder / photo["booking_id"] / photo["filename"]
+    else:
+        file_path = Path(PHOTO_STORAGE_PATH) / photo["booking_id"] / photo["filename"]
+    
     if file_path.exists():
         file_path.unlink()
     
@@ -1140,24 +1276,28 @@ async def delete_photo(photo_id: str, admin: dict = Depends(require_admin)):
 @api_router.get("/photos/{booking_id}/{filename}")
 async def get_photo(booking_id: str, filename: str):
     """Serve photo file"""
-    file_path = Path(PHOTO_STORAGE_PATH) / booking_id / filename
+    # Try new folder structure first
+    photo = await db.client_photos.find_one({"booking_id": booking_id, "filename": filename}, {"_id": 0})
+    if photo and photo.get("folder_name"):
+        file_path = Path(PHOTO_STORAGE_PATH) / photo["folder_name"] / booking_id / filename
+    else:
+        file_path = Path(PHOTO_STORAGE_PATH) / booking_id / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Photo not found")
-    
     return FileResponse(file_path)
 
 @api_router.get("/photos/{booking_id}/{filename}/download")
 async def download_photo(booking_id: str, filename: str, request: Request):
     """Download photo file and track download for 30-day deletion"""
-    file_path = Path(PHOTO_STORAGE_PATH) / booking_id / filename
+    photo = await db.client_photos.find_one({"booking_id": booking_id, "filename": filename}, {"_id": 0})
+    
+    if photo and photo.get("folder_name"):
+        file_path = Path(PHOTO_STORAGE_PATH) / photo["folder_name"] / booking_id / filename
+    else:
+        file_path = Path(PHOTO_STORAGE_PATH) / booking_id / filename
+    
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Photo not found")
-    
-    # Update photo with first download timestamp
-    photo = await db.client_photos.find_one(
-        {"booking_id": booking_id, "filename": filename},
-        {"_id": 0}
-    )
     
     if photo and not photo.get("first_downloaded_at"):
         delete_after = datetime.now(timezone.utc) + timedelta(days=PHOTO_RETENTION_DAYS)
@@ -1261,10 +1401,13 @@ async def change_password(data: ClientChangePassword, request: Request):
 
 @api_router.put("/auth/profile")
 async def update_profile(data: ClientUpdateProfile, request: Request):
-    """Update client profile"""
+    """Update client profile and rename photo folder if needed"""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    old_user = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    old_folder = get_client_folder_name(old_user.get("name", ""), old_user.get("email", ""))
     
     update = {}
     if data.name:
@@ -1274,6 +1417,21 @@ async def update_profile(data: ClientUpdateProfile, request: Request):
         await db.users.update_one({"user_id": user.user_id}, {"$set": update})
     
     updated = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    new_folder = get_client_folder_name(updated.get("name", ""), updated.get("email", ""))
+    
+    # Rename photo folder if name changed
+    if old_folder != new_folder:
+        old_path = Path(PHOTO_STORAGE_PATH) / old_folder
+        new_path = Path(PHOTO_STORAGE_PATH) / new_folder
+        if old_path.exists() and not new_path.exists():
+            old_path.rename(new_path)
+            # Update all photo records with new folder name
+            await db.client_photos.update_many(
+                {"user_id": user.user_id, "folder_name": old_folder},
+                {"$set": {"folder_name": new_folder}}
+            )
+            logger.info(f"Renamed photo folder: {old_folder} -> {new_folder}")
+    
     safe = {k: v for k, v in updated.items() if k != "password_hash"}
     return safe
 

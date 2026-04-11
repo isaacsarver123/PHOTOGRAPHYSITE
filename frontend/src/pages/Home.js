@@ -6,53 +6,55 @@ import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const heroImage = "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1920&q=80";
-const equipmentImage = "/equipment-image.png";
-const complianceImage = "/compliance-image.png";
-const air3Image = "/air3-image.png";
-const avata2Image = "/avata2-image.png";
+const defaultHero = {
+  headline: "Aerial Photography\nFor Real Estate",
+  subtitle: "Professional drone photography and videography that makes your property listings stand out. Serving Central Alberta.",
+  cta_text: "Book a Shoot",
+  cta_link: "/booking",
+  background_image: "https://images.unsplash.com/photo-1606586243531-92e25ac0c0aa?w=1920&q=80"
+};
 
-const defaultServices = [
-  {
-    title: "Residential",
-    description: "Showcase homes with stunning aerial perspectives",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80",
-    span: "md:col-span-7"
-  },
-  {
-    title: "Commercial",
-    description: "Professional imagery for commercial properties",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80",
-    span: "md:col-span-5"
-  },
-  {
-    title: "Land & Development",
-    description: "Aerial mapping and survey photography",
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80",
-    span: "md:col-span-5"
-  },
-  {
-    title: "Construction Progress",
-    description: "Document your build with regular aerial updates",
-    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80",
-    span: "md:col-span-7"
-  }
-];
-
-const stats = [
+const defaultStats = [
   { value: "500+", label: "Properties Shot" },
   { value: "50+", label: "Real Estate Agents" },
   { value: "24hr", label: "Average Delivery" },
   { value: "100%", label: "Client Satisfaction" }
 ];
 
+const defaultAbout = {
+  tagline: "Central Alberta & Red Deer",
+  headline: "Aerial Perspectives That\nSell Properties",
+  description: "Serving Central Alberta, Red Deer, and surrounding areas. We deliver exceptional aerial photography that helps real estate professionals stand out in a competitive market. Our fleet of DJI drones captures every angle with precision and artistry. Edmonton and Calgary available for an additional $80 CAD travel fee.",
+  compliance_title: "Transport Canada Compliant",
+  compliance_text: "All our pilots hold Transport Canada Advanced Operations certificates, maintaining full compliance with Canadian aviation regulations.",
+  compliance_image: "/compliance-image.png"
+};
+
+const defaultServices = [
+  { title: "Residential", description: "Showcase homes with stunning aerial perspectives", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80", span: "md:col-span-7" },
+  { title: "Commercial", description: "Professional imagery for commercial properties", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80", span: "md:col-span-5" },
+  { title: "Land & Development", description: "Aerial mapping and survey photography", image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80", span: "md:col-span-5" },
+  { title: "Construction Progress", description: "Document your build with regular aerial updates", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80", span: "md:col-span-7" }
+];
+
 export default function Home() {
+  const [hero, setHero] = useState(defaultHero);
+  const [stats, setStats] = useState(defaultStats);
+  const [about, setAbout] = useState(defaultAbout);
   const [services, setServices] = useState(defaultServices);
 
   useEffect(() => {
-    axios.get(`${API}/home-services`).then(res => {
-      if (res.data && res.data.length > 0) setServices(res.data);
-    }).catch(() => {});
+    Promise.allSettled([
+      axios.get(`${API}/cms/hero`),
+      axios.get(`${API}/cms/stats`),
+      axios.get(`${API}/cms/about`),
+      axios.get(`${API}/home-services`)
+    ]).then(([heroRes, statsRes, aboutRes, svcRes]) => {
+      if (heroRes.status === 'fulfilled' && heroRes.value.data) setHero(h => ({ ...h, ...heroRes.value.data }));
+      if (statsRes.status === 'fulfilled' && Array.isArray(statsRes.value.data)) setStats(statsRes.value.data);
+      if (aboutRes.status === 'fulfilled' && aboutRes.value.data) setAbout(a => ({ ...a, ...aboutRes.value.data }));
+      if (svcRes.status === 'fulfilled' && svcRes.value.data?.length > 0) setServices(svcRes.value.data);
+    });
   }, []);
 
   return (
@@ -61,7 +63,7 @@ export default function Home() {
       <section className="relative h-screen flex items-center" data-testid="hero-section">
         <div className="absolute inset-0">
           <img 
-            src={heroImage} 
+            src={hero.background_image} 
             alt="Aerial view of luxury property" 
             className="w-full h-full object-cover"
           />
@@ -76,24 +78,21 @@ export default function Home() {
             className="max-w-3xl"
           >
             <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-6">
-              Central Alberta & Red Deer
+              {about.tagline}
             </p>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-none mb-6">
-              Elevate Your<br />
-              Real Estate<br />
-              Listings
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-none mb-6 whitespace-pre-line">
+              {hero.headline}
             </h1>
             <p className="text-lg text-white/70 max-w-xl mb-10 leading-relaxed">
-              Stunning aerial photography and videography that showcases properties 
-              from perspectives that captivate buyers and close deals faster.
+              {hero.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                to="/booking"
+                to={hero.cta_link || "/booking"}
                 data-testid="hero-cta-button"
                 className="bg-[#d4af37] text-black px-8 py-4 text-sm font-medium tracking-wide uppercase hover:bg-[#c4a030] transition-colors inline-flex items-center justify-center gap-2"
               >
-                Request a Booking
+                {hero.cta_text || "Request a Booking"}
                 <ArrowRight size={18} />
               </Link>
               <Link
@@ -206,13 +205,13 @@ export default function Home() {
               className="relative"
             >
               <img
-                src={complianceImage}
-                alt="DJI Mavic 3 Pro - Transport Canada Compliant"
+                src={about.compliance_image || "/compliance-image.png"}
+                alt={about.compliance_title || "Transport Canada Compliant"}
                 className="w-full aspect-[4/5] object-cover"
               />
               <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-[#d4af37] text-black p-6 md:p-8">
                 <Certificate size={32} weight="fill" className="mb-2" />
-                <p className="text-xs uppercase tracking-wider font-medium">Transport Canada</p>
+                <p className="text-xs uppercase tracking-wider font-medium">{about.compliance_title || "Transport Canada"}</p>
                 <p className="text-xs text-black/60">Compliant</p>
               </div>
             </motion.div>
@@ -223,14 +222,11 @@ export default function Home() {
               viewport={{ once: true }}
             >
               <p className="text-xs tracking-[0.2em] uppercase text-[#d4af37] mb-4">About SkyLine Media</p>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">
-                Professional Aerial<br />Photography Experts
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 whitespace-pre-line">
+                {about.headline || "Professional Aerial\nPhotography Experts"}
               </h2>
               <p className="text-white/60 leading-relaxed mb-8">
-                Serving Central Alberta, Red Deer, and surrounding areas. We deliver exceptional aerial photography 
-                that helps real estate professionals stand out in a competitive market. 
-                Our fleet of DJI drones captures every angle with precision and artistry.
-                Edmonton and Calgary available for an additional $80 CAD travel fee.
+                {about.description}
               </p>
 
               <div className="grid grid-cols-3 gap-4 mb-8">
@@ -281,7 +277,7 @@ export default function Home() {
               </p>
 
               <img
-                src={equipmentImage}
+                src="/equipment-image.png"
                 alt="Our Professional Equipment"
                 className="w-full rounded-lg"
               />
@@ -312,12 +308,12 @@ export default function Home() {
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <img
-                  src={air3Image}
+                  src="/air3-image.png"
                   alt="DJI Air 3"
                   className="w-full aspect-square object-cover border border-white/10"
                 />
                 <img
-                  src={avata2Image}
+                  src="/avata2-image.png"
                   alt="DJI Avata 2"
                   className="w-full aspect-square object-cover border border-white/10"
                 />

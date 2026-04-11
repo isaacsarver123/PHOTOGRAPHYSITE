@@ -14,22 +14,22 @@ const tierColors = {
 
 export default function Pricing() {
   const [packages, setPackages] = useState([]);
+  const [faq, setFaq] = useState([]);
+  const [addons, setAddons] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPackages();
-  }, []);
-
-  const fetchPackages = async () => {
-    try {
-      const response = await axios.get(`${API}/packages`);
-      setPackages(response.data);
-    } catch (error) {
-      console.error('Error fetching packages:', error);
-    } finally {
+    Promise.allSettled([
+      axios.get(`${API}/packages`),
+      axios.get(`${API}/cms/faq`),
+      axios.get(`${API}/cms/addons`)
+    ]).then(([pkgRes, faqRes, addonRes]) => {
+      if (pkgRes.status === 'fulfilled') setPackages(pkgRes.value.data);
+      if (faqRes.status === 'fulfilled' && Array.isArray(faqRes.value.data)) setFaq(faqRes.value.data);
+      if (addonRes.status === 'fulfilled' && Array.isArray(addonRes.value.data)) setAddons(addonRes.value.data);
       setLoading(false);
-    }
-  };
+    });
+  }, []);
 
   return (
     <main data-testid="pricing-page" className="pt-20">
@@ -215,12 +215,7 @@ export default function Pricing() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: 'Twilight Photography', price: 149, desc: 'Golden hour & sunset shots' },
-              { name: 'Rush Delivery', price: 99, desc: 'Same-day turnaround' },
-              { name: 'Social Media Package', price: 79, desc: 'Vertical reels & optimized content' },
-              { name: 'Travel Fee (Edm/Cgy)', price: 80, desc: 'For Edmonton or Calgary area shoots' }
-            ].map((addon, idx) => (
+            {addons.map((addon, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
@@ -230,7 +225,7 @@ export default function Pricing() {
                 className="border border-white/10 p-6"
               >
                 <h3 className="font-medium mb-1">{addon.name}</h3>
-                <p className="text-sm text-white/60 mb-4">{addon.desc}</p>
+                <p className="text-sm text-white/60 mb-4">{addon.description}</p>
                 <p className="text-xl font-bold text-[#d4af37]">+${addon.price} CAD</p>
               </motion.div>
             ))}
@@ -251,13 +246,7 @@ export default function Pricing() {
           </motion.div>
 
           <div className="space-y-6">
-            {[
-              { q: 'What areas do you serve?', a: 'We\'re based in Central Alberta (Red Deer area) with no travel fee. Edmonton and Calgary are available for an additional $80 CAD travel fee. Other locations can be arranged via booking request.' },
-              { q: 'How does the booking approval work?', a: 'After you submit a request, we review availability and confirm details. Once approved, you\'ll receive a payment link via email.' },
-              { q: 'Do you offer indoor FPV fly-throughs?', a: 'Yes! Our FPV Showcase package includes a full indoor fly-through using our BetaFPV Pavo 20 Pro drone. The Aerial Plus package also includes an optional simple indoor pass.' },
-              { q: 'What if the weather is bad?', a: 'We monitor weather closely and will reschedule free of charge if conditions are unsafe for flying.' },
-              { q: 'How long are photos available?', a: 'Photos are available for download for 30 days after your first download. Make sure to save them!' }
-            ].map((faq, idx) => (
+            {faq.map((item, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
@@ -266,8 +255,8 @@ export default function Pricing() {
                 transition={{ delay: idx * 0.1 }}
                 className="border-b border-white/10 pb-6"
               >
-                <h3 className="font-medium mb-2">{faq.q}</h3>
-                <p className="text-sm text-white/60">{faq.a}</p>
+                <h3 className="font-medium mb-2">{item.question}</h3>
+                <p className="text-sm text-white/60">{item.answer}</p>
               </motion.div>
             ))}
           </div>
