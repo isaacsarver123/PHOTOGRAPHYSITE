@@ -1,45 +1,57 @@
 # SkyLine Media - PRD
 
 ## Original Problem Statement
-Build a website for a drone aerial photography business specializing in DJI high-quality drones for real estate photography in Central Alberta, Canada.
+Build a website for a drone aerial photography business specializing in DJI drones for real estate in Central Alberta.
 
 ## Key Details
-- Brand: **SkyLine Media**
-- Currency: **CAD (Canadian Dollars)**
-- Main Location: **Central Alberta (Red Deer & Area)**
-- Service Areas: Central Alberta (free), Edmonton (+$80), Calgary (+$80), Others by arrangement
-- Phone: **(825) 962-3425**
-- Compliance: **Transport Canada** certified
+- Brand: **SkyLine Media** | Domain: skylinemedia.ca (to be set up)
+- Currency: **CAD** | Location: **Central Alberta (Red Deer & Area)**
+- Phone: **(825) 962-3425** | Email: info@skylinemedia.ca
+- Travel fee: +$80 CAD for Edmonton/Calgary
 
-## Pricing Packages (CAD)
-- **Quick Aerial**: $199 - 8-12 photos, basic color correction, 48hr delivery, MLS-ready
-- **Aerial Plus**: $299 - 15-20 photos, 1 cinematic video (60s), enhanced color grading, 24-48hr (POPULAR)
-- **FPV Showcase**: $649 - 15 photos, cinematic video, full indoor FPV fly-through, highlight video, social reel, 24hr
-
-## Drone Fleet
-- DJI Mavic 3 Pro, DJI Air 3, DJI Avata 2, BetaFPV Pavo 20 Pro (DJI O4 Pro)
-
-## Client Auth
-- **Email/password** — no Google OAuth
-- Account auto-created on first booking with random password emailed
-- Client can change password and name from Dashboard > Profile
-- JWT stored in httpOnly cookies
+## Pricing: Quick Aerial ($199), Aerial Plus ($299 - popular), FPV Showcase ($649)
+## Fleet: Mavic 3 Pro, Air 3, Avata 2, BetaFPV Pavo 20 Pro (DJI O4 Pro)
 
 ## Features Implemented
-- [x] Full marketing site (Home, Services, Portfolio, Pricing, Contact, About)
-- [x] AI Chat Widget (Claude Sonnet 4.5)
-- [x] Client email/password auth with auto-account creation
-- [x] Client dashboard (overview, photos, bookings, profile with password change)
-- [x] Admin dashboard with full CMS (portfolio, home services, site content, packages, settings)
-- [x] Stripe LIVE payments (CAD)
-- [x] SMTP email infrastructure (configurable, currently mocked)
-- [x] 30-day auto-deletion scheduler for photos
-- [x] Booking approval workflow
 
-## Admin: isaacsarver100@gmail.com / Isabella0116! at /admin
-## Client login at /login
+### Full CMS (Admin Dashboard — ALL website content editable)
+- [x] **Website Editor** — Hero section, stats, about text, FAQ, add-ons, contact info
+- [x] **Home Services** — "What We Offer" cards
+- [x] **Portfolio** — CRUD for portfolio items
+- [x] **Packages** — Edit all pricing tiers
+- [x] **Site Content** — Phone, email, locations, fleet, service areas
+- [x] **Settings** — SMTP email config, photo storage path, retention days
+
+### Client Auth (Email/Password)
+- [x] Auto-account creation on first booking (random password emailed)
+- [x] Client login at /login
+- [x] Password change & name editing from dashboard profile
+- [x] Photo folder auto-renames when client changes name
+
+### Photo Storage
+- [x] Photos stored in `/uploads/{client-name}_{email}/{booking_id}/`
+- [x] Folder renames on client profile changes
+- [x] Storage path configurable from admin settings
+- [x] 30-day auto-deletion scheduler (every 6 hours)
+
+### Marketing Website
+- [x] All pages (Home, Services, Portfolio, Pricing, Contact, About)
+- [x] AI Chat Widget (Claude Sonnet 4.5)
+- [x] All content fetched from CMS APIs
+
+### Integrations
+- [x] Stripe LIVE payments (CAD) — Prebuilt Checkout
+- [x] Claude AI chat (Emergent LLM Key)
+- [x] SMTP email infrastructure (awaiting user config)
+
+## Credentials
+- Admin: isaacsarver100@gmail.com / Isabella0116! at /admin
+- Test client: testclient@example.com / NewPass456 at /login
+
+## Tech Stack
+React + Tailwind + Framer Motion | FastAPI + MongoDB | Stripe | Claude AI | JWT Auth
 
 ## Next Steps
-1. Configure SMTP via Admin > Settings
-2. Custom domain
-3. Local storage path for production
+1. Set up skylinemedia.ca domain + noreply@skylinemedia.ca email
+2. Configure SMTP in Admin > Settings
+3. Deploy to local server
