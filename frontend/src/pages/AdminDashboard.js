@@ -201,6 +201,18 @@ function AdminBookings() {
     }
   };
 
+  const deleteBooking = async (bookingId) => {
+    if (!confirm('Are you sure you want to permanently delete this booking? This cannot be undone.')) return;
+    try {
+      await axios.delete(`${API}/admin/bookings/${bookingId}`, { headers: getAuthHeaders() });
+      toast.success('Booking deleted');
+      if (selectedBooking?.id === bookingId) setSelectedBooking(null);
+      fetchBookings();
+    } catch (error) {
+      toast.error('Failed to delete booking');
+    }
+  };
+
   return (
     <div data-testid="admin-bookings">
       <div className="flex justify-between items-center mb-8">
@@ -243,7 +255,17 @@ function AdminBookings() {
                     <p className="font-bold">{booking.name}</p>
                     <p className="text-sm text-white/60">{booking.property_address}</p>
                   </div>
-                  <StatusBadge status={booking.status} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={booking.status} />
+                    <button
+                      data-testid={`delete-booking-${booking.id}`}
+                      onClick={(e) => { e.stopPropagation(); deleteBooking(booking.id); }}
+                      className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                      title="Delete booking"
+                    >
+                      <Trash size={16} />
+                    </button>
+                  </div>
                 </div>
                 <div className="flex gap-4 mt-4 text-sm text-white/60">
                   <span>{booking.scheduled_date}</span>
@@ -267,6 +289,9 @@ function AdminBookings() {
                 fetchBookings();
                 setSelectedBooking(null);
               }}
+              onDelete={() => {
+                deleteBooking(selectedBooking.id);
+              }}
             />
           ) : (
             <div className="text-center py-12">
@@ -281,7 +306,7 @@ function AdminBookings() {
 }
 
 // Booking Details Component
-function BookingDetails({ booking, onStatusUpdate, onPhotoUpload, onApprove }) {
+function BookingDetails({ booking, onStatusUpdate, onPhotoUpload, onApprove, onDelete }) {
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [approving, setApproving] = useState(false);
@@ -470,6 +495,18 @@ function BookingDetails({ booking, onStatusUpdate, onPhotoUpload, onApprove }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Delete Booking */}
+      <div className="border-t border-white/10 pt-4 mt-4">
+        <button
+          data-testid="delete-booking-detail"
+          onClick={onDelete}
+          className="w-full py-2.5 text-sm text-red-400 border border-red-400/30 hover:bg-red-400/10 transition-colors flex items-center justify-center gap-2"
+        >
+          <Trash size={16} />
+          Delete Booking
+        </button>
       </div>
     </div>
   );
@@ -1459,8 +1496,12 @@ function AdminSettings() {
               data-testid="settings-storage-path"
               value={settings.photo_storage_path}
               onChange={e => setSettings(s => ({ ...s, photo_storage_path: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none"
+              placeholder="D:/Photos or /mnt/storage/photos"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none placeholder:text-white/20"
             />
+            <p className="text-xs text-white/30 mt-1.5">
+              Any absolute path (e.g. <span className="text-white/50">D:/Photos</span>, <span className="text-white/50">/mnt/storage</span>). Folder will be created automatically.
+            </p>
           </div>
           <div>
             <label className="block text-sm text-white/60 mb-2">Retention Period (days)</label>
@@ -1471,6 +1512,9 @@ function AdminSettings() {
               onChange={e => setSettings(s => ({ ...s, photo_retention_days: parseInt(e.target.value) || 30 }))}
               className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none"
             />
+            <p className="text-xs text-white/30 mt-1.5">
+              Photos older than this will be auto-deleted.
+            </p>
           </div>
         </div>
       </div>

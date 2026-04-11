@@ -1149,6 +1149,39 @@ async def update_booking_status(
     
     return {"message": "Status updated"}
 
+@api_router.delete("/admin/bookings/{booking_id}")
+async def delete_booking(booking_id: str, admin: dict = Depends(require_admin)):
+    """Delete a booking and its associated photos"""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Delete associated photos from disk
+    photos = await db.client_photos.find({"booking_id": booking_id}, {"_id": 0}).to_list(100)
+    for photo in photos:
+        try:
+            folder = photo.get("folder_name", "")
+            if folder:
+                file_path = Path(PHOTO_STORAGE_PATH) / folder / booking_id / photo["filename"]
+            else:
+                file_path = Path(PHOTO_STORAGE_PATH) / booking_id / photo["filename"]
+            if file_path.exists():
+                file_path.unlink()
+            # Clean up empty directories
+            parent = file_path.parent
+            if parent.exists() and not any(parent.iterdir()):
+                parent.rmdir()
+        except Exception as e:
+            print(f"Error deleting photo file: {e}")
+    
+    # Delete photo records from DB
+    await db.client_photos.delete_many({"booking_id": booking_id})
+    
+    # Delete the booking
+    await db.bookings.delete_one({"id": booking_id})
+    
+    return {"message": "Booking deleted successfully"}
+
 @api_router.get("/admin/clients")
 async def get_admin_clients(admin: dict = Depends(require_admin), limit: int = 50):
     """Get all clients"""

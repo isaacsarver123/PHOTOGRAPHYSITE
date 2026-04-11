@@ -275,18 +275,55 @@ export default function Booking() {
                       key={pkg.id}
                       onClick={() => setSelectedPackage(pkg.id)}
                       data-testid={`select-package-${pkg.id}`}
-                      className={`cursor-pointer border p-6 transition-colors ${
+                      className={`cursor-pointer border transition-colors relative ${
                         selectedPackage === pkg.id 
                           ? 'border-[#d4af37] bg-[#d4af37]/10' 
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       {pkg.popular && (
-                        <span className="text-xs bg-[#d4af37] text-black px-2 py-1 mb-2 inline-block">POPULAR</span>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#d4af37] text-black px-3 py-0.5 text-xs uppercase tracking-wider font-medium">
+                          Most Popular
+                        </div>
                       )}
-                      <h3 className="font-bold mb-2">{pkg.name}</h3>
-                      <p className="text-2xl font-black mb-2">${pkg.price} <span className="text-sm font-normal text-white/60">CAD</span></p>
-                      <p className="text-sm text-white/60">{pkg.description}</p>
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-bold text-lg">{pkg.name}</h3>
+                          {selectedPackage === pkg.id && (
+                            <div className="w-6 h-6 bg-[#d4af37] flex items-center justify-center">
+                              <Check size={14} weight="bold" className="text-black" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-2xl font-black mb-1">${pkg.price} <span className="text-sm font-normal text-white/60">CAD</span></p>
+                        <p className="text-sm text-white/50 mb-5">{pkg.description}</p>
+                        
+                        {pkg.features && pkg.features.length > 0 && (
+                          <div className="pt-4 border-t border-white/10">
+                            <p className="text-xs uppercase tracking-wider text-white/40 mb-3">What's Included</p>
+                            <ul className="space-y-2">
+                              {pkg.features.map((feature, fidx) => (
+                                <li key={fidx} className="flex items-start gap-2 text-sm">
+                                  <Check size={16} className="mt-0.5 flex-shrink-0 text-[#d4af37]" />
+                                  <span className="text-white/80">{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {pkg.notes && (
+                          <div className="mt-4 p-2.5 bg-white/5 border border-white/10 text-xs text-white/50">
+                            {pkg.notes}
+                          </div>
+                        )}
+
+                        {pkg.recommended_for && (
+                          <p className="mt-4 pt-3 border-t border-white/10 text-xs text-white/40">
+                            Best for: {pkg.recommended_for}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
