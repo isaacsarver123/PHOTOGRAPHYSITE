@@ -178,13 +178,44 @@ function AdminPackages() {
 function AdminSettings() {
   const [settings, setSettings] = useState({ photo_storage_path: '', photo_retention_days: 30, smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', sender_email: '' });
   const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [testing, setTesting] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [faviconPreview, setFaviconPreview] = useState(null);
   useEffect(() => { fetchSettings(); }, []);
   const fetchSettings = async () => { try { const res = await axios.get(`${API}/admin/settings`, { headers: getAuthHeaders() }); setSettings(prev => ({ ...prev, ...res.data })); } catch (error) { toast.error('Failed to load settings'); } finally { setLoading(false); } };
   const handleSave = async () => { setSaving(true); try { const payload = { ...settings }; if (payload.smtp_password === '***') delete payload.smtp_password; delete payload.id; delete payload.updated_at; await axios.put(`${API}/admin/settings`, payload, { headers: getAuthHeaders() }); toast.success('Settings saved successfully'); } catch (error) { toast.error('Failed to save settings'); } finally { setSaving(false); } };
-  const handleTestEmail = async () => { setTesting(true); try { const res = await axios.post(`${API}/admin/test-email`, {}, { headers: getAuthHeaders() }); if (res.data.status === 'mocked') { toast.info(res.data.message); } else { toast.success('Test email sent!'); } } catch (error) { toast.error(error.response?.data?.detail || 'Failed to send test email'); } finally { setTesting(false); } };
+  const handleTestEmail = async () => { setTesting(true); try { const res = await axios.post(`${API}/admin/test-email`, {}, { headers: getAuthHeaders() }); if (res.data.status === 'mocked') { toast.info(res.data.message); } else if (res.data.status === 'error') { toast.error(res.data.message); } else { toast.success('Test email sent!'); } } catch (error) { toast.error(error.response?.data?.detail || 'Failed to send test email'); } finally { setTesting(false); } };
+  const handleFaviconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFavicon(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await axios.post(`${API}/admin/favicon`, formData, { headers: { ...getAuthHeaders(), 'Content-Type': 'multipart/form-data' } });
+      toast.success(res.data.message);
+      setFaviconPreview(URL.createObjectURL(file));
+    } catch (error) { toast.error(error.response?.data?.detail || 'Failed to upload favicon'); }
+    finally { setUploadingFavicon(false); }
+  };
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-white/5" /></div>;
   return (
     <div data-testid="admin-settings"><h1 className="text-3xl font-black tracking-tight mb-8">Settings</h1>
+      {/* Favicon */}
+      <div className="border border-white/10 bg-[#141414] p-6 mb-6">
+        <h2 className="text-lg font-bold mb-4">Site Favicon</h2>
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+            {faviconPreview ? <img src={faviconPreview} alt="Favicon preview" className="w-full h-full object-contain" /> : <img src="/favicon.ico" alt="Current favicon" className="w-full h-full object-contain" />}
+          </div>
+          <div>
+            <label className="cursor-pointer">
+              <input type="file" accept=".png,.jpg,.jpeg,.ico,.svg,.webp" onChange={handleFaviconUpload} className="hidden" />
+              <span className="inline-block bg-white/10 hover:bg-white/20 px-4 py-2 text-sm transition-colors">{uploadingFavicon ? 'Uploading...' : 'Upload New Favicon'}</span>
+            </label>
+            <p className="text-xs text-white/30 mt-2">Upload PNG, JPG, ICO, or SVG. Will be resized automatically. Hard refresh (Ctrl+Shift+R) to see changes.</p>
+          </div>
+        </div>
+      </div>
       <div className="border border-white/10 bg-[#141414] p-6 mb-6"><h2 className="text-lg font-bold mb-4">Photo Storage</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className="block text-sm text-white/60 mb-2">Storage Path</label><input data-testid="settings-storage-path" value={settings.photo_storage_path} onChange={e => setSettings(s => ({ ...s, photo_storage_path: e.target.value }))} placeholder="D:/Photos or /mnt/storage/photos" className="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none placeholder:text-white/20" /><p className="text-xs text-white/30 mt-1.5">Any absolute path (e.g. <span className="text-white/50">D:/Photos</span>, <span className="text-white/50">/mnt/storage</span>). Folder will be created automatically.</p></div>

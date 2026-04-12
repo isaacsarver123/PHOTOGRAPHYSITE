@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Request, Response, Depends
+from fastapi import APIRouter, Request, Response, Depends, UploadFile, File
+from fastapi.responses import FileResponse
 from datetime import datetime, timezone
 from pathlib import Path
+import shutil
 
 import config
 from database import db
@@ -196,3 +198,51 @@ async def update_contact_status(contact_id: str, status: str, admin: dict = Depe
     if result.modified_count == 0:
         raise __import__('fastapi').HTTPException(status_code=404, detail="Contact not found")
     return {"message": "Status updated"}
+
+
+@router.post("/admin/favicon")
+async def upload_favicon(file: UploadFile = File(...), admin: dict = Depends(require_admin)):
+    """Upload a custom favicon image (PNG, JPG, ICO, SVG)"""
+    from PIL import Image
+    import io
+
+    allowed = {".png", ".jpg", ".jpeg", ".ico", ".svg", ".webp"}
+    ext = Path(file.filename).suffix.lower()
+    if ext not in allowed:
+        raise __import__('fastapi').HTTPException(status_code=400, detail=f"File type {ext} not supported. Use PNG, JPG, ICO, or SVG.")
+
+    content = await file.read()
+    public_dir = config.ROOT_DIR.parent / "frontend" / "public"
+    build_dir = config.ROOT_DIR.parent / "frontend" / "build"
+
+    if ext == ".ico":
+        # Save ICO directly
+        for d in [public_dir, build_dir]:
+            if d.exists():
+                (d / "favicon.ico").write_bytes(content)
+    elif ext == ".svg":
+        for d in [public_dir, build_dir]:
+            if d.exists():
+                (d / "favicon.svg").write_bytes(content)
+    else:
+        # Convert image to favicon sizes
+        img = Image.open(io.BytesIO(content))
+        for d in [public_dir, build_dir]:
+            if d.exists():
+                img.resize((64, 64), Image.LANCZOS).save(str(d / "favicon.ico"), format="ICO")
+                img.resize((32, 32), Image.LANCZOS).save(str(d / "favicon-32x32.png"), format="PNG")
+                img.resize((180, 180), Image.LANCZOS).save(str(d / "apple-touch-icon.png"), format="PNG")
+
+    return {"message": "Favicon updated. Hard refresh your browser (Ctrl+Shift+R) to see it."}
+
+
+@router.get("/admin/favicon/preview")
+async def get_favicon_preview(admin: dict = Depends(require_admin)):
+    """Get current favicon"""
+    build_dir = config.ROOT_DIR.parent / "frontend" / "build"
+    public_dir = config.ROOT_DIR.parent / "frontend" / "public"
+    for d in [build_dir, public_dir]:
+        ico = d / "favicon.ico"
+        if ico.exists():
+            return FileResponse(ico, media_type="image/x-icon")
+    raise __import__('fastapi').HTTPException(status_code=404, detail="No favicon found")
