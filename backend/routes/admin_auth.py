@@ -147,6 +147,38 @@ async def get_admin_clients(admin: dict = Depends(require_admin), limit: int = 5
     return clients
 
 
+@router.delete("/admin/clients/{user_id}")
+async def delete_client(user_id: str, admin: dict = Depends(require_admin)):
+    """Delete a client and all their associated data"""
+    from pathlib import Path
+    import config
+
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        raise __import__('fastapi').HTTPException(status_code=404, detail="Client not found")
+
+    # Delete client photos from disk
+    photos = await db.client_photos.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    for photo in photos:
+        try:
+            folder = photo.get("folder_name", "")
+            if folder:
+                file_path = Path(config.PHOTO_STORAGE_PATH) / folder / photo["booking_id"] / photo["filename"]
+            else:
+                file_path = Path(config.PHOTO_STORAGE_PATH) / photo["booking_id"] / photo["filename"]
+            if file_path.exists():
+                file_path.unlink()
+        except Exception:
+            pass
+
+    # Delete all client data from DB
+    await db.client_photos.delete_many({"user_id": user_id})
+    await db.bookings.delete_many({"user_id": user_id})
+    await db.users.delete_one({"user_id": user_id})
+
+    return {"message": "Client and all associated data deleted"}
+
+
 @router.get("/admin/contacts")
 async def get_admin_contacts(admin: dict = Depends(require_admin), status: str = None, limit: int = 50):
     query = {}

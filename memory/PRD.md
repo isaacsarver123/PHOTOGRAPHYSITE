@@ -19,6 +19,7 @@ Build a website for a drone aerial photography business specializing in DJI dron
 - [x] Full CMS (Admin Dashboard — ALL website content editable)
 - [x] Booking system with admin approval workflow
 - [x] Booking deletion from Admin Dashboard
+- [x] Client deletion from Admin Dashboard (with all associated data)
 - [x] Configurable absolute photo storage path
 - [x] Detailed booking page package cards with features
 - [x] Client Auth (Email/Password, auto-account on booking)
@@ -62,7 +63,11 @@ React + Tailwind + Framer Motion | FastAPI + MongoDB | Stripe | Claude AI | JWT 
 ## What's Mocked
 - Email notifications (logged to console until real SMTP configured)
 
+## Completed (April 11, 2026 — Session 2)
+- Added client deletion (DELETE /api/admin/clients/{user_id}) — removes client + all bookings + photos
+- Created comprehensive README.md with full deployment instructions (Windows, Linux, Docker)
+
 ## Next Steps
-1. Stripe integration advice (user's pending question)
-2. Email domain setup (noreply@skylinemedia.ca)
-3. Local/self-hosted deployment
+1. Email domain setup (noreply@skylinemedia.ca) — configure SMTP in Admin > Settings
+2. Deploy to local server (see README.md for instructions)
+3. Update AI chat system message with correct pricing ($199/$299/$649 instead of outdated amounts)
