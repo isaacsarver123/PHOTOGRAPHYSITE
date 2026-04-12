@@ -4,47 +4,53 @@
 Build a website for a drone aerial photography business specializing in DJI drones for real estate in Central Alberta.
 
 ## Key Details
-- Brand: **SkyLine Media** | Domain: skylinemedia.ca (to be set up)
+- Brand: **SkyLine Media** | Domain: skylinemedia.ca
 - Currency: **CAD** | Location: **Central Alberta (Red Deer & Area)**
 - Phone: **(825) 962-3425** | Email: info@skylinemedia.ca
 - Travel fee: +$80 CAD for Edmonton/Calgary
 
-## Pricing: Quick Aerial ($199), Aerial Plus ($299 - popular), FPV Showcase ($649)
-## Fleet: Mavic 3 Pro, Air 3, Avata 2, BetaFPV Pavo 20 Pro (DJI O4 Pro)
+## Pricing Tiers
+- Quick Aerial ($199), Aerial Plus ($299 - popular), FPV Showcase ($649)
+
+## Fleet
+- Mavic 3 Pro, Air 3, Avata 2, BetaFPV Pavo 20 Pro (DJI O4 Pro)
 
 ## Features Implemented
-
-### Full CMS (Admin Dashboard — ALL website content editable)
-- [x] **Website Editor** — Hero section, stats, about text, FAQ, add-ons, contact info
-- [x] **Home Services** — "What We Offer" cards
-- [x] **Portfolio** — CRUD for portfolio items
-- [x] **Packages** — Edit all pricing tiers
-- [x] **Site Content** — Phone, email, locations, fleet, service areas
-- [x] **Settings** — SMTP email config, photo storage path (supports absolute paths like D:/Photos), retention days
-- [x] **Booking Management** — View, approve, update status, upload photos, **delete bookings**
-
-### Client Auth (Email/Password)
-- [x] Auto-account creation on first booking (random password emailed)
-- [x] Client login at /login
-- [x] Password change & name editing from dashboard profile
-- [x] Photo folder auto-renames when client changes name
-
-### Photo Storage
-- [x] Photos stored in `/{storage_path}/{client-name}_{email}/{booking_id}/`
-- [x] Folder renames on client profile changes
-- [x] Storage path configurable from admin settings — accepts ANY absolute path
-- [x] 30-day auto-deletion scheduler (every 6 hours)
-
-### Marketing Website
-- [x] All pages (Home, Services, Portfolio, Pricing, Contact, About)
-- [x] AI Chat Widget (Claude Sonnet 4.5)
-- [x] All content fetched from CMS APIs
-- [x] Booking page shows full package details with features, notes, and recommendations
-
-### Integrations
-- [x] Stripe LIVE payments (CAD) — Prebuilt Checkout
-- [x] Claude AI chat (Emergent LLM Key)
+- [x] Full CMS (Admin Dashboard — ALL website content editable)
+- [x] Booking system with admin approval workflow
+- [x] Booking deletion from Admin Dashboard
+- [x] Configurable absolute photo storage path
+- [x] Detailed booking page package cards with features
+- [x] Client Auth (Email/Password, auto-account on booking)
+- [x] Photo storage with 30-day auto-deletion
+- [x] Stripe LIVE payments (CAD)
+- [x] Claude AI chat widget
 - [x] SMTP email infrastructure (awaiting user config)
+
+## Architecture (Refactored April 11, 2026)
+
+### Backend (FastAPI) — Modularized
+- `server.py` — App setup, middleware, startup, router inclusion (~130 lines)
+- `config.py` — All environment variables and mutable state
+- `database.py` — MongoDB connection
+- `models.py` — All Pydantic models
+- `auth.py` — JWT/password helpers, auth dependencies
+- `email_service.py` — Email sending (SMTP/Resend/mock)
+- `routes/admin_auth.py` — Admin login, settings, stats, clients, contacts
+- `routes/admin_bookings.py` — Booking CRUD, photo upload/serve/download
+- `routes/admin_cms.py` — CMS, portfolio, packages, home services, site content
+- `routes/client.py` — Client auth, profile, photos, stats
+- `routes/public.py` — Public endpoints, packages, portfolio, bookings, contact, chat
+- `routes/payments.py` — Stripe checkout, webhook
+
+### Frontend (React) — Modularized
+- `AdminDashboard.js` — Layout shell + Portfolio, HomeServices, Content, Packages, Settings (~650 lines)
+- `admin/helpers.js` — Shared API, auth headers, StatusBadge component
+- `admin/AdminOverview.js` — Dashboard stats + recent bookings
+- `admin/AdminBookings.js` — Booking list + details + delete
+- `admin/AdminClients.js` — Client table
+- `admin/AdminContacts.js` — Contact requests
+- `admin/AdminCMSEditor.js` — Full CMS editor (hero, stats, about, FAQ, addons, contact)
 
 ## Credentials
 - Admin: isaacsarver100@gmail.com / Isabella0116! at /admin
@@ -53,18 +59,10 @@ Build a website for a drone aerial photography business specializing in DJI dron
 ## Tech Stack
 React + Tailwind + Framer Motion | FastAPI + MongoDB | Stripe | Claude AI | JWT Auth
 
-## Completed (April 11, 2026)
-- Added DELETE /api/admin/bookings/{id} endpoint (deletes booking + associated photos from disk)
-- Added delete button on Admin Dashboard booking list rows and booking detail panel
-- Updated Admin Settings photo storage path to accept absolute paths with helper text
-- Expanded /booking page package cards to show full descriptions, features, notes, and "Best for" text
+## What's Mocked
+- Email notifications (logged to console until real SMTP configured)
 
 ## Next Steps
-1. Stripe integration advice — user asked about Shareable links vs Prebuilt checkout vs Embedded components
-2. Set up skylinemedia.ca domain + noreply@skylinemedia.ca email
-3. Configure SMTP in Admin > Settings
-4. Deploy to local server
-
-## Backlog
-- Refactor server.py (2000+ lines) into separate route files
-- Refactor AdminDashboard.js into smaller components
+1. Stripe integration advice (user's pending question)
+2. Email domain setup (noreply@skylinemedia.ca)
+3. Local/self-hosted deployment

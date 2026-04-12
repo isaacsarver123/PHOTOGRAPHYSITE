@@ -1,209 +1,62 @@
-# SkyLine Media — Full Handoff Document for Another AI
+# SkyLine Media — Complete Handoff Summary (20 Paragraphs)
+# Paste this entire document into ChatGPT/Claude to continue development
 
-## What This Is
-A full-stack drone aerial photography website for "SkyLine Media" — a real estate drone photography business in Central Alberta, Canada. Built with React + FastAPI + MongoDB.
+## Paragraph 1: What This Is
+SkyLine Media is a full-stack web application for a drone aerial photography business specializing in DJI drones for real estate in Central Alberta, Canada. The brand name is "SkyLine Media" with the domain skylinemedia.ca (not yet configured). All prices are in CAD. The business is based in Central Alberta (Red Deer & Area) with no travel fee locally, and +$80 CAD for Edmonton and Calgary. The phone number is (825) 962-3425, email is info@skylinemedia.ca. The fleet includes DJI Mavic 3 Pro, Air 3, Avata 2, and BetaFPV Pavo 20 Pro (DJI O4 Pro) for indoor FPV fly-throughs.
 
----
+## Paragraph 2: Tech Stack
+The application uses React 18 with Tailwind CSS, Framer Motion, and React Router on the frontend. Shadcn/UI components are used from `/frontend/src/components/ui/`. The backend is FastAPI (Python) with Motor (async MongoDB driver) and Pydantic models. MongoDB runs locally on `mongodb://localhost:27017` with database name `test_database`. Stripe is integrated for live payments in CAD. Claude Sonnet 4.5 powers an AI chat widget via the Emergent LLM Key and `emergentintegrations` library. Authentication is custom JWT with bcrypt password hashing — there is NO Google OAuth (user explicitly removed it).
 
-## Tech Stack
-- **Frontend**: React 18, Tailwind CSS, Framer Motion, React Router, Shadcn/UI components, Phosphor Icons
-- **Backend**: FastAPI (Python), Motor (async MongoDB driver), Pydantic
-- **Database**: MongoDB (local via `mongodb://localhost:27017`, DB name: `test_database`)
-- **Payments**: Stripe (live key in backend/.env)
-- **AI Chat**: Claude Sonnet 4.5 via Emergent LLM Key
-- **Auth**: Custom JWT (bcrypt password hashing) — NO Google OAuth
+## Paragraph 3: Pricing Packages
+There are three pricing tiers: Quick Aerial ($199 CAD) which includes 8-12 aerial photos, basic color correction, 48-hour delivery, and MLS-ready exports; Aerial Plus ($299 CAD, marked as "popular") with 15-20 aerial photos, 1 cinematic aerial video, enhanced color grading, 24-48 hour delivery, and commercial usage rights; and FPV Showcase ($649 CAD) with 15 aerial photos, 1 cinematic aerial video, full indoor FPV fly-through, edited highlight video, social media cut, and 24-hour delivery. All packages are editable from the Admin Dashboard CMS.
 
----
+## Paragraph 4: Backend Architecture (Refactored)
+The backend was refactored from a single 2045-line `server.py` into modular files. `config.py` holds all environment variables and mutable state (PACKAGES, SMTP settings, storage path). `database.py` creates the MongoDB connection. `models.py` contains all Pydantic models (User, Booking, ContactRequest, ClientPhoto, PaymentTransaction, Settings, plus request/response models). `auth.py` has JWT/password helpers and FastAPI dependency injection (require_admin, require_auth, get_current_user). `email_service.py` handles sending emails via SMTP, Resend, or mock fallback. Route files are in `routes/`: `admin_auth.py` (admin login, settings, stats, clients, contacts), `admin_bookings.py` (booking CRUD, photo upload/serve/download/delete), `admin_cms.py` (CMS sections, portfolio CRUD, packages, home services, site content), `client.py` (client auth, profile, photos, stats), `public.py` (public endpoints, bookings, contact form, AI chat, seed data, health), and `payments.py` (Stripe checkout and webhook).
 
-## Project Structure
-```
-/app/
-  frontend/
-    src/
-      pages/
-        Home.js, Services.js, Portfolio.js, Pricing.js, About.js, Contact.js
-        Booking.js          — Multi-step booking form (package → details → review)
-        AdminDashboard.js   — All admin CMS tabs (1700+ lines, needs refactoring)
-        ClientDashboard.js  — Client portal (view bookings, download photos, profile)
-        Login.js            — Client login page
-      context/
-        AuthContext.js      — JWT auth context (admin + client)
-      components/
-        ui/                 — Shadcn components (button, calendar, input, etc.)
-        Navbar.js, Footer.js, AIChat.js
-      App.js                — React Router setup
-    .env                    — REACT_APP_BACKEND_URL=https://drone-home-showcase.preview.emergentagent.com
-  backend/
-    server.py               — ALL routes, models, background tasks (2000+ lines)
-    .env                    — MONGO_URL, STRIPE_API_KEY, JWT_SECRET, ADMIN credentials, etc.
-    uploads/                — Default photo storage directory
-  memory/
-    PRD.md                  — Product requirements
-    test_credentials.md     — Login credentials for testing
-```
+## Paragraph 5: Frontend Architecture (Refactored)
+The frontend AdminDashboard was refactored from a single 1722-line file. Shared helpers (API URL, auth headers, StatusBadge component) are in `pages/admin/helpers.js`. Individual components were extracted to `pages/admin/`: `AdminOverview.js` (dashboard stats and recent bookings table), `AdminBookings.js` (booking list with filters, detail panel, approve/status/delete, photo upload), `AdminClients.js` (client table), `AdminContacts.js` (contact requests with status management), and `AdminCMSEditor.js` (tabbed editor for Hero, Stats, About, FAQ, Add-ons, Contact sections). The remaining CMS components (Portfolio, Home Services, Site Content, Packages, Settings) remain in `AdminDashboard.js` which now serves as the layout shell with sidebar navigation and React Router.
 
----
+## Paragraph 6: Authentication System
+Admin authentication uses JWT with 24-hour expiry. Admin login is at `POST /api/admin/login` returning a JWT token stored in localStorage and as an httpOnly cookie. The admin account is seeded on startup from the ADMIN_EMAIL and ADMIN_PASSWORD environment variables (isaacsarver100@gmail.com / Isabella0116!). Client authentication is also JWT-based with 7-day expiry. Clients do NOT register manually — when someone submits a booking with a new email, an account is automatically created with a random 10-character password. This password is emailed to the client (currently mocked to console logs). Clients login at `/login` via `POST /api/auth/login`. They can change their password and name from their dashboard profile.
 
-## Credentials
-- **Admin**: `isaacsarver100@gmail.com` / `Isabella0116!` — Login at `/admin`
-- **Test Client**: `testclient@example.com` / `NewPass456` — Login at `/login`
-- Client accounts are auto-created when someone submits a booking (random password generated, logged to console since SMTP is mocked)
+## Paragraph 7: Booking Flow
+The booking flow is: Client visits `/booking` → selects a package (now showing full features, descriptions, notes, and "Best for" text) → enters details (date, time, name, email, phone, address, property type, service area) → reviews and submits. On submit, the booking is saved with status "pending" and a client account is auto-created if needed. Admin reviews the booking in the dashboard and clicks "Approve & Send Payment Link" which creates a Stripe Checkout session and emails the payment URL. Client pays → webhook/status check marks booking as "confirmed" and payment as "paid". Admin can then change status to "completed" when photos are ready. Admins can also delete bookings (with associated photos) from the dashboard.
 
----
+## Paragraph 8: Photo Storage & Delivery
+Photos are stored locally in the filesystem under `{PHOTO_STORAGE_PATH}/{client_name}_{email}/{booking_id}/`. The storage path is configurable from Admin Settings and accepts any absolute path (e.g., `D:/Photos`, `/mnt/storage`). The directory is auto-created. When admin uploads a photo for a booking, it's stored in the client's folder. Photos are served via `GET /api/photos/{booking_id}/{filename}` and downloaded via `GET /api/photos/{booking_id}/{filename}/download`. On first download, a 30-day deletion timer starts. A background scheduler runs every 6 hours to delete expired photos. If a client changes their name, the photo folder is automatically renamed.
 
-## Key Features
+## Paragraph 9: Admin CMS
+The admin CMS allows editing ALL website content. The Website Editor tab has sub-tabs for: Hero (headline, subtitle, CTA, background image), Stats (value/label pairs), About (tagline, headline, description, compliance info, images, difference items, service cities), FAQ (question/answer pairs), Add-ons (name/price/description), and Contact (phone, email, address, hours). Additional tabs include: Home Services (edit "What We Offer" cards with title, description, image, column span), Portfolio (CRUD for gallery items with before/after images), Site Content (phone, email, location, service areas with fees, drone fleet), Packages (edit pricing tiers with features, descriptions, popular flag), and Settings (photo storage path, retention days, SMTP configuration).
 
-### 1. Marketing Website (Public Pages)
-All content is fetched from MongoDB via CMS APIs (`GET /api/content/{section}`, `GET /api/packages`).
-- **Home**: Hero section, stats, services overview, portfolio preview, FAQ
-- **Services**: Detailed service cards
-- **Portfolio**: Before/after gallery with category filters
-- **Pricing**: 3 tiers — Quick Aerial ($199), Aerial Plus ($299), FPV Showcase ($649)
-- **About**: Company story, team, equipment
-- **Contact**: Contact form → stored in DB
+## Paragraph 10: Stripe Integration
+Stripe is integrated using `emergentintegrations.payments.stripe.checkout` with a LIVE API key stored in `backend/.env` as `STRIPE_API_KEY`. When admin approves a booking, a Stripe Checkout session is created with the booking amount in CAD, success/cancel URLs, and metadata containing the booking_id. The payment URL is saved on the booking and emailed to the client. A webhook endpoint at `POST /api/webhook/stripe` handles payment confirmation. The status check endpoint `GET /api/payments/status/{session_id}` also verifies payment status. The current implementation uses Stripe's Prebuilt Checkout page (redirect flow), which is the recommended approach for this business model.
 
-### 2. Booking System
-- `/booking` — 3-step form: Select Package → Enter Details → Review & Submit
-- Package cards show full features, descriptions, notes, "Best for" text
-- On submit: booking saved to DB, client account auto-created if new email
-- Admin reviews → approves → Stripe payment link sent → client pays → shoot scheduled
+## Paragraph 11: AI Chat Widget
+A floating chat widget appears on all pages, powered by Claude Sonnet 4.5 via the Emergent LLM Key. The system message describes SkyLine Media's services, pricing, and booking process. Chat sessions are stored in MongoDB with session IDs. The chat uses `emergentintegrations.llm.chat.LlmChat` with model `anthropic/claude-sonnet-4-5-20250929`. Note: The system message in the chat currently has outdated pricing (shows $399/$799/$1299 instead of the actual $199/$299/$649) — this should be updated to match the real packages.
 
-### 3. Admin Dashboard (`/admin`)
-- **Overview**: Stats (bookings, revenue, clients, contacts)
-- **Bookings**: List with filters, detail panel, approve/status update, photo upload, **DELETE**
-- **Clients**: List of all client accounts
-- **Contacts**: Contact form submissions
-- **Website Editor**: Edit Hero, Stats, About, FAQ, Add-ons content
-- **Home Services**: Edit "What We Offer" cards
-- **Portfolio**: CRUD for portfolio items (before/after images)
-- **Packages**: Edit pricing tiers (name, price, features, description, notes, recommended_for)
-- **Site Content**: Edit phone, email, locations, fleet, service areas
-- **Settings**: Photo storage path (any absolute path), retention days, SMTP config
+## Paragraph 12: Database Schema
+MongoDB collections: `admins` (id, email, name, role, password_hash), `users` (user_id, email, name, password_hash, created_at), `bookings` (id, user_id, name, email, phone, property_address, property_type, service_area, package_id, scheduled_date/time, status, payment_status, total_amount, payment_session_id, payment_url, notes, admin_notes), `client_photos` (id, user_id, booking_id, filename, url, download_url, folder_name, file_size, first_downloaded_at, delete_after, download_count), `contacts` (id, name, email, phone, service_type, service_area, message, status), `portfolio` (id, title, description, category, image_url, before/after_image_url, location), `settings` (id, photo_storage_path, photo_retention_days, smtp_*), `cms` (id, content - for hero/stats/about/faq/addons/contact), `site_content` (id, phone, email, main_location, service_areas, fleet), `custom_packages` (id, packages), `home_services` (id, services), `chat_messages` (id, session_id, role, content), `payment_transactions` (id, session_id, booking_id, amount, status, payment_status).
 
-### 4. Client Portal (`/dashboard` after login)
-- View bookings and status
-- Download photos uploaded by admin
-- Edit profile (name, password)
+## Paragraph 13: Environment Variables
+Frontend `.env`: `REACT_APP_BACKEND_URL` (the app's public URL). Backend `.env`: `MONGO_URL`, `DB_NAME`, `CORS_ORIGINS`, `ANTHROPIC_API_KEY` (Emergent LLM Key), `STRIPE_API_KEY` (live Stripe key), `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `RESEND_API_KEY` (set to re_mock_key), `SENDER_EMAIL`, `PHOTO_STORAGE_PATH`, `PHOTO_RETENTION_DAYS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`. All backend API routes are prefixed with `/api`. Frontend always uses `REACT_APP_BACKEND_URL` for API calls.
 
-### 5. Photo Storage
-- Photos stored locally in `{storage_path}/{client_name}_{email}/{booking_id}/`
-- Storage path configurable in Admin Settings (accepts absolute paths like `D:/Photos`)
-- 30-day auto-deletion scheduler runs every 6 hours
+## Paragraph 14: What's Mocked
+Email notifications are currently mocked. When SMTP is not configured (SMTP_HOST/USER/PASSWORD are empty), emails are logged to the backend console instead of being sent. This includes: booking confirmation emails, approval/payment link emails, credential emails for new accounts, and "photos ready" notifications. To enable real emails, configure SMTP in Admin > Settings with a real SMTP host, port, username, and password (e.g., Gmail with an App Password, or a transactional email service).
 
-### 6. AI Chat Widget
-- Floating chat bubble on all pages
-- Uses Claude Sonnet 4.5 via Emergent LLM Key
-- Answers questions about SkyLine Media services
+## Paragraph 15: Stripe Advice (For User)
+For your business model (booking approval → payment → service delivery), the current **Prebuilt Checkout** (redirect to Stripe-hosted page) is the BEST choice. Here's why: (1) It handles all PCI compliance — you never touch card data. (2) It supports Apple Pay, Google Pay, and 20+ payment methods automatically. (3) It works perfectly with the approval flow — admin approves, Stripe generates a payment link, client clicks it and pays. (4) Embedded Components require more frontend work and are better for e-commerce carts. (5) Shareable Payment Links are good for one-off invoicing but don't integrate as cleanly with your booking system. **Keep what you have — it's the right choice.**
 
----
+## Paragraph 16: Email Setup Instructions
+To set up real email notifications: (1) Get a domain email address — if using skylinemedia.ca, set up email hosting through your domain registrar (Namecheap, GoDaddy, etc.) or use Google Workspace ($7/mo). (2) For Gmail/Google Workspace SMTP: Go to myaccount.google.com → Security → 2-Step Verification → App passwords → Generate a new app password for "Mail". (3) In Admin Dashboard > Settings, enter: SMTP Host: `smtp.gmail.com`, SMTP Port: `587`, SMTP Username: your Gmail/Workspace email, SMTP Password: the 16-character app password you generated, Sender Email: `noreply@skylinemedia.ca` (must match your domain). (4) Click "Send Test Email" to verify it works. Alternatively, you can use a transactional email service like SendGrid, Mailgun, or Amazon SES — they all use standard SMTP.
 
-## Key API Endpoints
+## Paragraph 17: Local/Self-Hosted Deployment Instructions
+To deploy on your own Windows server: (1) Install Python 3.11+, Node.js 18+, and MongoDB Community Edition. (2) Clone the codebase. (3) Backend: `cd backend && pip install -r requirements.txt && python -m uvicorn server:app --host 0.0.0.0 --port 8001`. (4) Frontend: `cd frontend && yarn install && yarn build` — this creates a `build/` folder. Serve it with nginx or any static file server. (5) Set `REACT_APP_BACKEND_URL` in frontend `.env` to your server's URL before building. (6) Configure a reverse proxy (nginx recommended) to route `/api/*` to port 8001 and everything else to the frontend build folder. (7) For HTTPS, use Let's Encrypt with certbot. (8) Set `PHOTO_STORAGE_PATH` in Admin Settings to your desired photo directory (e.g., `D:/SkylinePhotos`).
 
-### Auth
-- `POST /api/admin/login` — Admin login (returns JWT)
-- `POST /api/auth/login` — Client login (returns JWT)
+## Paragraph 18: Known Issues & TODO
+(1) The AI chat system message has outdated pricing — update it in `routes/public.py` around line 173 to match actual $199/$299/$649 packages. (2) Email is mocked until SMTP is configured. (3) The frontend still has some larger components (AdminDashboard.js ~650 lines) that could be further split. (4) No Docker setup yet for simplified deployment. (5) No automated backup strategy for MongoDB data. (6) Client dashboard photos could benefit from a gallery lightbox. (7) Booking calendar doesn't show already-booked dates as unavailable.
 
-### Public
-- `GET /api/packages` — List all pricing packages
-- `GET /api/content/{section}` — Get CMS content (hero, stats, about, faq, addons, services, site_content)
-- `GET /api/portfolio` — List portfolio items
-- `POST /api/bookings` — Submit booking request (auto-creates client account)
-- `POST /api/contact` — Submit contact form
+## Paragraph 19: Key Files Reference
+Backend: `server.py` (main app ~130 lines), `config.py` (env vars), `database.py` (MongoDB), `models.py` (all models), `auth.py` (auth helpers), `email_service.py` (email), `routes/admin_auth.py`, `routes/admin_bookings.py`, `routes/admin_cms.py`, `routes/client.py`, `routes/public.py`, `routes/payments.py`. Frontend: `App.js` (router), `pages/Home.js`, `pages/Services.js`, `pages/Portfolio.js`, `pages/Pricing.js`, `pages/About.js`, `pages/Contact.js`, `pages/Booking.js`, `pages/Login.js`, `pages/AdminDashboard.js` (layout + 5 components), `pages/ClientDashboard.js`, `pages/admin/AdminOverview.js`, `pages/admin/AdminBookings.js`, `pages/admin/AdminClients.js`, `pages/admin/AdminContacts.js`, `pages/admin/AdminCMSEditor.js`, `pages/admin/helpers.js`, `components/Navbar.js`, `components/Footer.js`, `components/AIChat.js`, `context/AuthContext.js`.
 
-### Admin (requires Bearer token)
-- `GET /api/admin/bookings` — List bookings (optional `?status=pending`)
-- `GET /api/admin/bookings/{id}` — Get booking details + photos
-- `POST /api/admin/bookings/{id}/approve` — Approve & generate Stripe payment link
-- `PUT /api/admin/bookings/{id}/status` — Update booking status
-- `DELETE /api/admin/bookings/{id}` — Delete booking and associated photos
-- `POST /api/admin/bookings/{id}/photos` — Upload photo for client
-- `GET /api/admin/settings` — Get settings
-- `PUT /api/admin/settings` — Update settings (storage path, SMTP, etc.)
-- `POST /api/admin/content/{section}` — Update CMS content
-- `GET/POST/PUT/DELETE /api/admin/portfolio/{id}` — Portfolio CRUD
-- `GET/POST /api/admin/packages` — Package management
-
-### Client (requires Bearer token)
-- `GET /api/client/bookings` — Client's bookings
-- `GET /api/client/photos/{booking_id}` — Client's photos for a booking
-
----
-
-## Database Collections (MongoDB)
-- `users` — {id, email, name, role, hashed_password, created_at}
-- `bookings` — {id, client_id, user_id, package_id, name, email, phone, property_address, property_type, service_area, scheduled_date, scheduled_time, status, payment_status, total_amount, notes, created_at}
-- `packages` — {id, name, price, description, features[], notes, recommended_for, popular, order}
-- `portfolio` — {id, title, description, before_image, after_image, category}
-- `site_content` — {id, section, data{}} — CMS content for each page section
-- `settings` — {id: "app_settings", photo_storage_path, photo_retention_days, smtp_host/port/user/password, sender_email}
-- `client_photos` — {id, booking_id, filename, title, url, folder_name, uploaded_at, expires_at}
-- `contacts` — {id, name, email, phone, message, status, created_at}
-- `chat_sessions` — {session_id, messages[], created_at, updated_at}
-
----
-
-## Environment Variables
-
-### Frontend (.env)
-```
-REACT_APP_BACKEND_URL=https://drone-home-showcase.preview.emergentagent.com
-```
-
-### Backend (.env)
-```
-MONGO_URL="mongodb://localhost:27017"
-DB_NAME="test_database"
-CORS_ORIGINS="*"
-ANTHROPIC_API_KEY=sk-ant-api03-...
-STRIPE_API_KEY=sk_live_51TKl3K...
-JWT_SECRET=a1b2c3d4e5f6g7h8...
-ADMIN_EMAIL=isaacsarver100@gmail.com
-ADMIN_PASSWORD=Isabella0116!
-RESEND_API_KEY=re_mock_key
-SENDER_EMAIL=noreply@skylinemedia.ca
-PHOTO_STORAGE_PATH=/app/backend/uploads
-PHOTO_RETENTION_DAYS=30
-SMTP_HOST=
-SMTP_PORT=587
-SMTP_USER=
-SMTP_PASSWORD=
-```
-
----
-
-## What's Mocked
-- **Email notifications**: All emails (booking confirmation, approval, password delivery) are logged to console. Will work when real SMTP credentials are configured in Admin Settings.
-
----
-
-## Known Issues / TODO
-1. **Stripe advice**: User asked about Shareable links vs Prebuilt checkout vs Embedded components — hasn't been addressed yet
-2. **Email setup**: User wants `noreply@skylinemedia.ca` — needs real SMTP credentials
-3. **Refactoring needed**: `server.py` is 2000+ lines, `AdminDashboard.js` is 1700+ lines — should be split into modules
-4. **Local deployment**: User wants to self-host — may need Docker setup or deployment guide
-
----
-
-## How to Run Locally
-```bash
-# Backend
-cd /app/backend
-pip install -r requirements.txt
-uvicorn server:app --host 0.0.0.0 --port 8001
-
-# Frontend
-cd /app/frontend
-yarn install
-yarn start  # runs on port 3000
-```
-
-MongoDB must be running on localhost:27017. Admin account is auto-seeded on first startup.
-
----
-
-## Important Notes
-- All backend API routes must be prefixed with `/api` (handled by the FastAPI router)
-- Frontend uses `REACT_APP_BACKEND_URL` for all API calls
-- DO NOT use Google OAuth — it was explicitly removed by the user
-- Photo storage path now accepts any absolute path (Windows or Linux)
-- Booking deletion also removes associated photos from disk and DB
+## Paragraph 20: Credentials & How to Run
+Admin login: `isaacsarver100@gmail.com` / `Isabella0116!` at `/admin`. Test client: `testclient@example.com` / `NewPass456` at `/login`. To create a new test client, submit a booking at `/booking` with a new email — check backend console logs for the auto-generated password. MongoDB must be running on localhost:27017. Backend runs on port 8001, frontend on port 3000. The Stripe key in the .env is a LIVE key. DO NOT use Google OAuth — it was explicitly removed by the user. All CMS content is stored in MongoDB and can be edited entirely from the admin dashboard. Photo storage supports absolute paths configured from Admin > Settings.
