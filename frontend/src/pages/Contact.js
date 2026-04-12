@@ -89,8 +89,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium mb-1">Email</p>
-                    <a href="mailto:info@skylinemedia.ca" className="text-white/60 hover:text-white transition-colors">
-                      info@skylinemedia.ca
+                    <a href="mailto:info@skylinemedia.net" className="text-white/60 hover:text-white transition-colors">
+                      info@skylinemedia.net
                     </a>
                   </div>
                 </div>

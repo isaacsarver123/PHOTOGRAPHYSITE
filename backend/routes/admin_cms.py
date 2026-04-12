@@ -56,7 +56,7 @@ DEFAULTS = {
     ],
     "contact": {
         "phone": "(825) 962-3425",
-        "email": "info@skylinemedia.ca",
+        "email": "info@skylinemedia.net",
         "address": "Central Alberta, Red Deer & Area",
         "hours": "Mon-Fri: 8am-6pm, Sat: 9am-4pm, Sun: By appointment",
         "response_time": "We typically respond within 2-4 hours during business hours."
@@ -146,7 +146,7 @@ async def get_public_site_content():
     content = await db.site_content.find_one({"id": "site_content"}, {"_id": 0})
     if not content:
         content = {
-            "phone": "(825) 962-3425", "email": "info@skylinemedia.ca",
+            "phone": "(825) 962-3425", "email": "info@skylinemedia.net",
             "main_location": "Central Alberta",
             "service_areas": [
                 {"name": "Central Alberta (Red Deer & Area)", "fee": 0},

@@ -125,7 +125,7 @@ class Settings(BaseModel):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
-    sender_email: str = "noreply@skylinemedia.ca"
+    sender_email: str = "noreply@skylinemedia.net"
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

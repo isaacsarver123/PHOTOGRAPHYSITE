@@ -59,7 +59,7 @@ export default function Footer() {
             <h4 className="font-bold text-sm tracking-wider uppercase mb-6 text-[#d4af37]">Contact</h4>
             <ul className="space-y-3 text-white/60 text-sm">
               <li>Central Alberta (Red Deer & Area)</li>
-              <li>info@skylinemedia.ca</li>
+              <li>info@skylinemedia.net</li>
               <li>(825) 962-3425</li>
               <li className="pt-2">
                 <span className="text-xs uppercase tracking-wider text-white/40">Transport Canada Compliant</span>

@@ -35,9 +35,12 @@ async def send_email(to_email: str, subject: str, html_content: str):
             params = {"from": config.SENDER_EMAIL, "to": [to_email], "subject": subject, "html": html_content}
             email = await asyncio.to_thread(resend.Emails.send, params)
             logger.info(f"Email sent via Resend to {to_email}: {email}")
-            return email
+            return {"id": str(email), "status": "sent"}
         except Exception as e:
-            logger.error(f"Resend email failed: {e}")
+            error_msg = str(e)
+            logger.error(f"Resend email failed: {error_msg}")
+            if "not verified" in error_msg.lower():
+                return {"id": "domain_not_verified", "status": "error", "error": "Domain not verified in Resend. Go to resend.com/domains to verify skylinemedia.net"}
             return None
 
     logger.info(f"[MOCK EMAIL] To: {to_email}, Subject: {subject}")

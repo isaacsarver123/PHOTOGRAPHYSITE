@@ -4,9 +4,9 @@
 Build a website for a drone aerial photography business specializing in DJI drones for real estate in Central Alberta.
 
 ## Key Details
-- Brand: **SkyLine Media** | Domain: skylinemedia.ca
+- Brand: **SkyLine Media** | Domain: skylinemedia.net
 - Currency: **CAD** | Location: **Central Alberta (Red Deer & Area)**
-- Phone: **(825) 962-3425** | Email: info@skylinemedia.ca
+- Phone: **(825) 962-3425** | Email: info@skylinemedia.net
 - Travel fee: +$80 CAD for Edmonton/Calgary
 
 ## Pricing Tiers
@@ -68,6 +68,6 @@ React + Tailwind + Framer Motion | FastAPI + MongoDB | Stripe | Claude AI | JWT 
 - Created comprehensive README.md with full deployment instructions (Windows, Linux, Docker)
 
 ## Next Steps
-1. Email domain setup (noreply@skylinemedia.ca) — configure SMTP in Admin > Settings
+1. Email domain setup (noreply@skylinemedia.net) — configure SMTP in Admin > Settings
 2. Deploy to local server (see README.md for instructions)
 3. Update AI chat system message with correct pricing ($199/$299/$649 instead of outdated amounts)

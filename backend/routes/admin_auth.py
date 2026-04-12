@@ -110,11 +110,13 @@ async def test_email(admin: dict = Depends(require_admin)):
     </body></html>
     """
     result = await send_email(admin["email"], "SkyLine Media - SMTP Test", test_html)
-    if result and result.get("status") != "mocked":
+    if result and result.get("status") == "sent":
         return {"message": "Test email sent successfully", "status": "sent"}
+    elif result and result.get("status") == "error":
+        return {"message": result.get("error", "Email sending failed"), "status": "error"}
     elif result and result.get("status") == "mocked":
-        return {"message": "Email is currently in mock mode. Configure SMTP settings to send real emails.", "status": "mocked"}
-    raise __import__('fastapi').HTTPException(status_code=500, detail="Failed to send test email. Check your SMTP settings.")
+        return {"message": "Email is currently in mock mode. Configure SMTP or Resend to send real emails.", "status": "mocked"}
+    raise __import__('fastapi').HTTPException(status_code=500, detail="Failed to send test email. Check your SMTP/Resend settings.")
 
 
 @router.get("/admin/stats")

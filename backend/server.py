@@ -105,7 +105,7 @@ async def startup_event():
     if not existing_content:
         await db.site_content.insert_one({
             "id": "site_content",
-            "phone": "(825) 962-3425", "email": "info@skylinemedia.ca",
+            "phone": "(825) 962-3425", "email": "info@skylinemedia.net",
             "main_location": "Central Alberta",
             "service_areas": [
                 {"name": "Central Alberta (Red Deer & Area)", "fee": 0},

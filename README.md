@@ -232,7 +232,7 @@ cd frontend
 
 # Set your production URL BEFORE building
 # Edit .env:
-#   REACT_APP_BACKEND_URL=https://skylinemedia.ca
+#   REACT_APP_BACKEND_URL=https://skylinemedia.net
 
 yarn install
 yarn build
@@ -246,7 +246,7 @@ Create `nginx.conf`:
 ```nginx
 server {
     listen 80;
-    server_name skylinemedia.ca www.skylinemedia.ca;
+    server_name skylinemedia.net www.skylinemedia.net;
 
     # Redirect HTTP to HTTPS
     return 301 https://$server_name$request_uri;
@@ -254,7 +254,7 @@ server {
 
 server {
     listen 443 ssl;
-    server_name skylinemedia.ca www.skylinemedia.ca;
+    server_name skylinemedia.net www.skylinemedia.net;
 
     ssl_certificate     /path/to/fullchain.pem;
     ssl_certificate_key /path/to/privkey.pem;
@@ -284,7 +284,7 @@ server {
 Use [win-acme](https://www.win-acme.com/) for free Let's Encrypt certificates on Windows:
 ```powershell
 # Download win-acme, then:
-wacs.exe --target manual --host skylinemedia.ca,www.skylinemedia.ca
+wacs.exe --target manual --host skylinemedia.net,www.skylinemedia.net
 ```
 
 ---
@@ -366,7 +366,7 @@ sudo nano /etc/nginx/sites-available/skyline-media
 
 ```nginx
 server {
-    server_name skylinemedia.ca www.skylinemedia.ca;
+    server_name skylinemedia.net www.skylinemedia.net;
 
     location / {
         root /opt/skyline-media/frontend/build;
@@ -390,7 +390,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 # Get SSL certificate
-sudo certbot --nginx -d skylinemedia.ca -d www.skylinemedia.ca
+sudo certbot --nginx -d skylinemedia.net -d www.skylinemedia.net
 ```
 
 ---
@@ -494,7 +494,7 @@ Email notifications are **mocked by default** (logged to console). To enable rea
    - SMTP Port: `587`
    - SMTP User: `your-email@gmail.com`
    - SMTP Password: the 16-character app password
-   - Sender Email: `noreply@skylinemedia.ca`
+   - Sender Email: `noreply@skylinemedia.net`
 4. Click "Send Test Email" to verify
 
 ### Other Providers
