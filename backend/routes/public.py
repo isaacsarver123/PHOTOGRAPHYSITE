@@ -109,6 +109,30 @@ async def create_booking(booking: BookingCreate, request: Request):
     await db.bookings.insert_one(doc)
     await send_booking_request_email(doc)
 
+    # Notify admin of new booking
+    admin_html = f"""
+    <html><body style="font-family: Arial, sans-serif; background-color: #0a0a0a; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #141414; padding: 40px; border-radius: 8px; border: 1px solid #333;">
+            <h2 style="color: #d4af37; margin-bottom: 20px;">New Booking Request</h2>
+            <p style="color: #fff;">A new booking has been submitted and needs your review.</p>
+            <div style="background: #1a1a1a; padding: 20px; margin: 20px 0; border: 1px solid #333;">
+                <p style="color: #fff; margin: 5px 0;"><strong>Client:</strong> {booking.name}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Email:</strong> {booking.email}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Phone:</strong> {booking.phone}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Package:</strong> {booking.package_id.replace('_', ' ').title()}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Date:</strong> {booking.scheduled_date} at {booking.scheduled_time}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Property:</strong> {booking.property_address}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Type:</strong> {booking.property_type}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Area:</strong> {booking.service_area.replace('_', ' ').title()}</p>
+                <p style="color: #fff; margin: 5px 0;"><strong>Amount:</strong> ${package['price']:.2f} CAD</p>
+                {f'<p style="color: #fff; margin: 5px 0;"><strong>Notes:</strong> {booking.notes}</p>' if booking.notes else ''}
+            </div>
+            <p style="color: #999;">Log in to your admin dashboard to review and approve this booking.</p>
+        </div>
+    </body></html>
+    """
+    await send_email(config.ADMIN_EMAIL, f"New Booking: {booking.name} - {booking.package_id.replace('_', ' ').title()}", admin_html)
+
     if generated_password:
         credentials_html = f"""
         <html><body style="font-family: Arial, sans-serif; background-color: #0a0a0a; padding: 20px;">
