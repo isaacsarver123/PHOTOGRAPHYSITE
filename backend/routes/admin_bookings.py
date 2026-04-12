@@ -56,13 +56,11 @@ async def approve_booking(booking_id: str, approval: BookingApprovalRequest, req
     if approval.admin_notes:
         update_data["admin_notes"] = approval.admin_notes
 
-    origin_url = str(request.base_url).rstrip('/').replace('/api', '').replace('http://', 'https://')
-    if 'localhost' in origin_url or '0.0.0.0' in origin_url:
-        origin_url = "https://drone-home-showcase.preview.emergentagent.com"
+    origin_url = "https://skylinemedia.net"
 
     success_url = f"{origin_url}/booking/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin_url}/booking/payment/{booking_id}"
-    webhook_url = f"{str(request.base_url)}api/webhook/stripe"
+    webhook_url = f"{origin_url}/api/webhook/stripe"
 
     stripe_checkout = StripeCheckout(api_key=config.STRIPE_API_KEY, webhook_url=webhook_url)
     checkout_request = CheckoutSessionRequest(
