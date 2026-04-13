@@ -1,12 +1,47 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from datetime import datetime, timezone
+from pathlib import Path
 import uuid
+import shutil
 
 import config
 from database import db
 from auth import require_admin
 
 router = APIRouter()
+
+# ==================== IMAGE UPLOAD ====================
+
+MEDIA_DIR = Path(config.ROOT_DIR) / "media"
+MEDIA_DIR.mkdir(exist_ok=True, parents=True)
+
+@router.post("/admin/upload-image")
+async def upload_image(file: UploadFile = File(...), admin: dict = Depends(require_admin)):
+    """Upload an image and return its URL. Used by portfolio, CMS, home services, etc."""
+    allowed = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
+    ext = Path(file.filename).suffix.lower()
+    if ext not in allowed:
+        raise HTTPException(status_code=400, detail=f"File type {ext} not supported. Use PNG, JPG, WEBP, or SVG.")
+    
+    file_id = str(uuid.uuid4())[:12]
+    filename = f"{file_id}{ext}"
+    file_path = MEDIA_DIR / filename
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    url = f"/api/media/{filename}"
+    return {"url": url, "filename": filename}
+
+
+@router.get("/media/{filename}")
+async def serve_media(filename: str):
+    """Serve uploaded media files"""
+    file_path = MEDIA_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path)
 
 # ==================== CMS DEFAULTS ====================
 

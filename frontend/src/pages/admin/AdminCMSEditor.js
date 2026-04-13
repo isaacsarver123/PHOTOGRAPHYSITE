@@ -1,8 +1,38 @@
 import { useState, useEffect } from 'react';
-import { X } from '@phosphor-icons/react';
+import { X, Upload } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { API, getAuthHeaders, inputCls, textareaCls } from './helpers';
+
+function CMSImageField({ label, value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await axios.post(`${API}/admin/upload-image`, formData, { headers: { ...getAuthHeaders(), 'Content-Type': 'multipart/form-data' } });
+      onChange(`${process.env.REACT_APP_BACKEND_URL}${res.data.url}`);
+      toast.success('Image uploaded');
+    } catch (error) { toast.error('Failed to upload'); }
+    finally { setUploading(false); }
+  };
+  return (
+    <div>
+      <label className="block text-sm text-white/60 mb-2">{label}</label>
+      <div className="flex gap-2">
+        <input value={value || ''} onChange={e => onChange(e.target.value)} placeholder="Paste URL or upload" className={`${inputCls} flex-1`} />
+        <label className="cursor-pointer flex-shrink-0">
+          <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+          <span className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-3 text-sm transition-colors"><Upload size={16} />{uploading ? '...' : 'Upload'}</span>
+        </label>
+      </div>
+      {value && <img src={value} alt="Preview" className="mt-2 max-h-24 object-cover border border-white/10" onError={e => e.target.style.display='none'} />}
+    </div>
+  );
+}
 
 export function AdminCMSEditor() {
   const [activeTab, setActiveTab] = useState('hero');
@@ -41,8 +71,7 @@ export function AdminCMSEditor() {
           <div><label className="block text-sm text-white/60 mb-2">CTA Button Text</label><input value={data.cta_text || ''} onChange={e => setData(d => ({ ...d, cta_text: e.target.value }))} className={inputCls} /></div>
           <div><label className="block text-sm text-white/60 mb-2">CTA Link</label><input value={data.cta_link || ''} onChange={e => setData(d => ({ ...d, cta_link: e.target.value }))} className={inputCls} /></div>
         </div>
-        <div><label className="block text-sm text-white/60 mb-2">Background Image URL</label><input value={data.background_image || ''} onChange={e => setData(d => ({ ...d, background_image: e.target.value }))} className={inputCls} /></div>
-        {data.background_image && <img src={data.background_image} alt="Preview" className="w-full max-h-48 object-cover border border-white/10" />}
+        <CMSImageField label="Background Image" value={data.background_image || ''} onChange={v => setData(d => ({ ...d, background_image: v }))} />
       </div>);
       case 'stats': return (<div className="space-y-3">
         {Array.isArray(data) && data.map((stat, idx) => (
@@ -60,11 +89,11 @@ export function AdminCMSEditor() {
         <div><label className="block text-sm text-white/60 mb-2">Description</label><textarea value={data.description || ''} onChange={e => setData(d => ({ ...d, description: e.target.value }))} className={`${textareaCls} min-h-[120px]`} /></div>
         <div className="grid grid-cols-2 gap-4">
           <div><label className="block text-sm text-white/60 mb-2">Compliance Title</label><input value={data.compliance_title || ''} onChange={e => setData(d => ({ ...d, compliance_title: e.target.value }))} className={inputCls} /></div>
-          <div><label className="block text-sm text-white/60 mb-2">Compliance Image URL</label><input value={data.compliance_image || ''} onChange={e => setData(d => ({ ...d, compliance_image: e.target.value }))} className={inputCls} /></div>
+          <CMSImageField label="Compliance Image" value={data.compliance_image || ''} onChange={v => setData(d => ({ ...d, compliance_image: v }))} />
         </div>
         <div><label className="block text-sm text-white/60 mb-2">Compliance Text</label><textarea value={data.compliance_text || ''} onChange={e => setData(d => ({ ...d, compliance_text: e.target.value }))} className={textareaCls} /></div>
-        <div><label className="block text-sm text-white/60 mb-2">About Page Hero Image</label><input value={data.about_page_hero_image || ''} onChange={e => setData(d => ({ ...d, about_page_hero_image: e.target.value }))} className={inputCls} /></div>
-        <div><label className="block text-sm text-white/60 mb-2">About Page Equipment Image</label><input value={data.about_page_equipment_image || ''} onChange={e => setData(d => ({ ...d, about_page_equipment_image: e.target.value }))} className={inputCls} /></div>
+        <CMSImageField label="About Page Hero Image" value={data.about_page_hero_image || ''} onChange={v => setData(d => ({ ...d, about_page_hero_image: v }))} />
+        <CMSImageField label="About Page Equipment Image" value={data.about_page_equipment_image || ''} onChange={v => setData(d => ({ ...d, about_page_equipment_image: v }))} />
         <div>
           <div className="flex items-center justify-between mb-2"><label className="text-sm text-white/60">Difference Items</label><button onClick={() => setData(d => ({ ...d, difference_items: [...(d.difference_items || []), { title: '', description: '' }] }))} className="text-xs text-[#d4af37]">+ Add</button></div>
           {(data.difference_items || []).map((item, idx) => (

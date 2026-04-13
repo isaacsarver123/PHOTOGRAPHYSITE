@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   House, CalendarDots, Users, EnvelopeSimple, SignOut,
-  Gear, NotePencil, Package, Images, Layout, PencilSimpleLine, X
+  Gear, NotePencil, Package, Images, Layout, PencilSimpleLine, X, Upload
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -14,6 +14,37 @@ const getAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 const inputCls = "w-full bg-white/5 border border-white/10 px-4 py-3 text-sm focus:border-[#d4af37] focus:outline-none";
+
+// Reusable image field: upload file OR paste URL
+function ImageField({ label, value, onChange, placeholder }) {
+  const [uploading, setUploading] = useState(false);
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await axios.post(`${API}/admin/upload-image`, formData, { headers: { ...getAuthHeaders(), 'Content-Type': 'multipart/form-data' } });
+      onChange(`${process.env.REACT_APP_BACKEND_URL}${res.data.url}`);
+      toast.success('Image uploaded');
+    } catch (error) { toast.error('Failed to upload image'); }
+    finally { setUploading(false); }
+  };
+  return (
+    <div>
+      <label className="block text-sm text-white/60 mb-2">{label}</label>
+      <div className="flex gap-2">
+        <input value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder || 'Paste URL or upload file'} className={`${inputCls} flex-1`} />
+        <label className="cursor-pointer flex-shrink-0">
+          <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+          <span className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-3 text-sm transition-colors h-full"><Upload size={16} />{uploading ? '...' : 'Upload'}</span>
+        </label>
+      </div>
+      {value && <img src={value} alt="Preview" className="mt-2 max-h-24 object-cover border border-white/10" onError={e => e.target.style.display='none'} />}
+    </div>
+  );
+}
 
 // Extracted components
 import { AdminOverview } from './admin/AdminOverview';
@@ -42,12 +73,12 @@ function AdminPortfolio() {
           <div><label className="block text-sm text-white/60 mb-2">Title</label><input value={editItem.title} onChange={e => setEditItem(i => ({ ...i, title: e.target.value }))} className={inputCls} /></div>
           <div><label className="block text-sm text-white/60 mb-2">Location</label><input value={editItem.location} onChange={e => setEditItem(i => ({ ...i, location: e.target.value }))} className={inputCls} placeholder="Red Deer, AB" /></div>
           <div><label className="block text-sm text-white/60 mb-2">Category</label><select value={editItem.category} onChange={e => setEditItem(i => ({ ...i, category: e.target.value }))} className={inputCls}>{categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}</select></div>
-          <div><label className="block text-sm text-white/60 mb-2">Image URL</label><input value={editItem.image_url} onChange={e => setEditItem(i => ({ ...i, image_url: e.target.value }))} className={inputCls} /></div>
+          <ImageField label="Main Image" value={editItem.image_url} onChange={v => setEditItem(i => ({ ...i, image_url: v }))} />
         </div>
         <div className="mb-4"><label className="block text-sm text-white/60 mb-2">Description</label><input value={editItem.description} onChange={e => setEditItem(i => ({ ...i, description: e.target.value }))} className={inputCls} /></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div><label className="block text-sm text-white/60 mb-2">Before Image URL</label><input value={editItem.before_image_url || ''} onChange={e => setEditItem(i => ({ ...i, before_image_url: e.target.value }))} className={inputCls} /></div>
-          <div><label className="block text-sm text-white/60 mb-2">After Image URL</label><input value={editItem.after_image_url || ''} onChange={e => setEditItem(i => ({ ...i, after_image_url: e.target.value }))} className={inputCls} /></div>
+          <ImageField label="Before Image" value={editItem.before_image_url} onChange={v => setEditItem(i => ({ ...i, before_image_url: v }))} />
+          <ImageField label="After Image" value={editItem.after_image_url} onChange={v => setEditItem(i => ({ ...i, after_image_url: v }))} />
         </div>
         <div className="flex gap-3"><button data-testid="portfolio-save-item" onClick={() => handleSave(editItem)} disabled={saving} className="bg-[#d4af37] text-black px-6 py-2 text-sm font-medium disabled:opacity-50">{saving ? 'Saving...' : 'Save'}</button><button onClick={() => setEditItem(null)} className="border border-white/20 px-6 py-2 text-sm">Cancel</button></div>
       </div>)}
@@ -75,10 +106,12 @@ function AdminHomeServices() {
       <div className="space-y-4">{services.map((svc, idx) => (
         <div key={idx} className="border border-white/10 bg-[#141414] p-4">
           <div className="flex items-center justify-between mb-3"><span className="text-sm font-medium text-white/60">Service #{idx + 1}</span><button onClick={() => setServices(s => s.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-300"><X size={16} /></button></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div><label className="block text-xs text-white/40 mb-1">Title</label><input value={svc.title} onChange={e => updateService(idx, 'title', e.target.value)} className={inputCls} /></div>
             <div><label className="block text-xs text-white/40 mb-1">Description</label><input value={svc.description} onChange={e => updateService(idx, 'description', e.target.value)} className={inputCls} /></div>
-            <div><label className="block text-xs text-white/40 mb-1">Image URL</label><input value={svc.image} onChange={e => updateService(idx, 'image', e.target.value)} className={inputCls} /></div>
+          </div>
+          <div className="mt-3">
+            <ImageField label="Image" value={svc.image} onChange={v => updateService(idx, 'image', v)} />
           </div>
           <div className="mt-2"><label className="block text-xs text-white/40 mb-1">Column Span</label>
             <select value={svc.span} onChange={e => updateService(idx, 'span', e.target.value)} className={`${inputCls} w-48`}>
